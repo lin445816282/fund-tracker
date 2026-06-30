@@ -101,11 +101,19 @@
               <div class="mp-main">
                 <span class="mp-num">{{ idx + 1 }}</span>
                 <span class="mp-name">{{ p.name }}</span>
-                <span class="mp-total" :class="p.net >= 0 ? 'green' : 'red'">合计 ¥{{ fmt(p.net) }}</span>
+                <div class="mp-stats">
+                  <span v-if="p.balance_before != null" class="mps">上期 ¥{{ fmt(p.balance_before) }}</span>
+                  <span class="mps">净 <b :class="p.net >= 0 ? 'green' : 'red'">¥{{ fmt(p.net) }}</b></span>
+                  <span v-if="p.balance_after != null" class="mps">余额 <b :class="p.balance_after >= 0 ? 'green' : 'red'">¥{{ fmt(p.balance_after) }}</b></span>
+                </div>
               </div>
               <div v-for="sub in p.sub_projects" :key="sub.id" class="mp-sub">
                 <span class="mp-sub-name">{{ sub.name }}</span>
-                <span class="mp-sub-total-val" :class="sub.net >= 0 ? 'green' : 'red'">合计 ¥{{ fmt(sub.net) }}</span>
+                <div class="mp-stats">
+                  <span v-if="sub.balance_before != null" class="mps">上期 ¥{{ fmt(sub.balance_before) }}</span>
+                  <span class="mps">净 <b :class="sub.net >= 0 ? 'green' : 'red'">¥{{ fmt(sub.net) }}</b></span>
+                  <span v-if="sub.balance_after != null" class="mps">余额 <b :class="sub.balance_after >= 0 ? 'green' : 'red'">¥{{ fmt(sub.balance_after) }}</b></span>
+                </div>
               </div>
             </div>
           </template>
@@ -435,147 +443,144 @@ onMounted(async () => {
   padding: 8px;
 }
 .sg-block {
-  background: #fff;
-  border-radius: 14px;
+  background: var(--nn-paper);
+  border-radius: var(--nn-radius);
   padding: 12px 10px 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  box-shadow: var(--nn-shadow-seal);
   cursor: pointer;
-  transition: transform .15s;
+  transition: transform .2s var(--nn-ease), box-shadow .2s var(--nn-ease);
   position: relative;
 }
 .sg-block:active { transform: scale(.97); }
-.sg-block.active { box-shadow: 0 0 0 2px #1989fa inset; }
+.sg-block.active { box-shadow: 0 0 0 2px var(--nn-accent) inset; }
 
-.sg-title { font-size: 12px; font-weight: 700; color: #0a1628; margin-bottom: 6px; }
-.sg-date { font-weight: 400; font-size: 10px; color: #8899bb; margin-left: 2px; }
+.sg-title { font-size: 12px; font-weight: 700; color: var(--nn-ink); margin-bottom: 6px; }
+.sg-date { font-weight: 400; font-size: 10px; color: var(--nn-lightink); margin-left: 2px; }
 
-.sg-val-row { font-size: 16px; font-weight: 600; margin-bottom: 1px; color: #334155; }
+.sg-val-row { font-size: 16px; font-weight: 600; margin-bottom: 1px; color: var(--nn-ink); }
 .sg-val-row span { font-weight: 700; }
-.sg-val-row.sub { font-size: 11px; font-weight: 500; color: #64748b; margin-top: 0; }
-.sg-val-row .green { color: #07c160; }
-.sg-val-row .red { color: #ee0a24; }
+.sg-val-row.sub { font-size: 11px; font-weight: 500; color: var(--nn-lightink); margin-top: 0; }
+.sg-val-row .green { color: #2d6a4f; }
+.sg-val-row .red { color: var(--nn-seal); }
 
 .sg-compare {
-  border-top: 1px solid #f0f2f5;
-  padding-top: 4px;
-  margin-top: 2px;
+  border-top: 1px solid rgba(139, 90, 43, 0.10);
+  padding-top: 4px; margin-top: 2px;
   cursor: pointer;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 6px 6px;
 }
-.sg-compare:hover { background: #f8fafd; }
-.sg-compare:active { background: #edf2f7; }
-.sg-cmp-row { font-size: 9px; color: #b0bec5; line-height: 1.3; }
-.sg-cmp-row.main { font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 1px; }
-.sg-cmp-row span { color: #64748b; font-weight: 500; }
+.sg-compare:active { background: rgba(139, 90, 43, 0.04); }
+.sg-cmp-row { font-size: 9px; color: var(--nn-lightink); line-height: 1.3; }
+.sg-cmp-row.main { font-size: 14px; font-weight: 600; color: var(--nn-ink); margin-bottom: 1px; }
+.sg-cmp-row span { color: var(--nn-lightink); font-weight: 500; }
 .sg-cmp-row.main span { font-weight: 700; }
-.sg-cmp-row .green { color: #07c160; }
-.sg-cmp-row .red { color: #ee0a24; }
+.sg-cmp-row .green { color: #2d6a4f; }
+.sg-cmp-row .red { color: var(--nn-seal); }
 
 .alert-banner {
   margin: 0 8px 8px;
-  background: #fff3e0;
-  color: #e65100;
+  background: rgba(192, 48, 32, 0.08);
+  color: var(--nn-seal);
   padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
+  border-radius: var(--nn-radius-sm);
+  font-size: 13px; font-weight: 600;
   cursor: pointer;
 }
 
 .modal-wrap { display: flex; flex-direction: column; max-height: 70vh; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f2f5; flex-shrink: 0; }
-.modal-title { font-size: 16px; font-weight: 700; color: #0a1628; }
-.modal-close { font-size: 18px; color: #8899bb; cursor: pointer; padding: 4px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid rgba(139, 90, 43, 0.12); flex-shrink: 0; }
+.modal-title { font-size: 16px; font-weight: 700; color: var(--nn-ink); font-family: 'Ma Shan Zheng', 'Noto Serif SC', cursive; }
+.modal-close { font-size: 18px; color: var(--nn-lightink); cursor: pointer; padding: 4px; }
 .modal-body { flex: 1; overflow-y: auto; padding: 12px 14px; }
 .modal-loading { display: flex; justify-content: center; padding: 32px 0; }
-.modal-empty { text-align: center; color: #8899bb; padding: 32px 0; font-size: 14px; }
+.modal-empty { text-align: center; color: var(--nn-lightink); padding: 32px 0; font-size: 14px; }
 
 .modal-summary {
   text-align: center; padding: 10px 12px; margin-bottom: 12px;
-  background: #f0f4f8; border-radius: 10px; font-size: 13px; color: #334155;
+  background: rgba(139, 90, 43, 0.06); border-radius: var(--nn-radius-sm); font-size: 13px; color: var(--nn-ink);
 }
 .modal-summary b { margin: 0 4px; }
-.modal-summary .income { color: #07c160; }
-.modal-summary .expense { color: #ee0a24; }
-.modal-summary .green { color: #07c160; }
-.modal-summary .red { color: #ee0a24; }
+.modal-summary .income { color: #2d6a4f; }
+.modal-summary .expense { color: var(--nn-seal); }
+.modal-summary .green { color: #2d6a4f; }
+.modal-summary .red { color: var(--nn-seal); }
 .modal-summary.main-only {
-  background: #fffbe6; border: 1px solid #ffe58f; font-size: 12px; padding: 8px 12px;
+  background: rgba(184, 134, 11, 0.08); border: 1px solid rgba(184, 134, 11, 0.25); font-size: 12px; padding: 8px 12px;
 }
 .ms-note {
-  margin-left: 6px; font-size: 10px; color: #b0a060; font-weight: 400;
+  margin-left: 6px; font-size: 10px; color: var(--nn-gold); font-weight: 400;
 }
 
-.modal-proj { margin-bottom: 10px; border: 1px solid #e8ecf1; border-radius: 10px; overflow: hidden; }
-.mp-main { padding: 10px 12px; background: #fafbfc; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.mp-num { background: #e8ecf1; color: #4a5a7a; font-weight: 700; min-width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
-.mp-name { font-size: 14px; font-weight: 600; color: #0a1628; flex: 1; }
+.modal-proj { margin-bottom: 10px; border: 1px solid rgba(139, 90, 43, 0.12); border-radius: var(--nn-radius-sm); overflow: hidden; }
+.mp-main { padding: 10px 12px; background: var(--nn-paper); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.mp-num { background: rgba(139, 90, 43, 0.12); color: var(--nn-ink); font-weight: 700; min-width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+.mp-name { font-size: 14px; font-weight: 600; color: var(--nn-ink); flex: 1; }
 .mp-total { font-size: 15px; font-weight: 700; flex-shrink: 0; }
-.mp-total.green { color: #07c160; }
-.mp-total.red { color: #ee0a24; }
+.mp-total.green { color: #2d6a4f; }
+.mp-total.red { color: var(--nn-seal); }
 .mp-sub-total-val { font-size: 13px; font-weight: 600; flex-shrink: 0; }
-.mp-sub-total-val.green { color: #07c160; }
-.mp-sub-total-val.red { color: #ee0a24; }
+.mp-sub-total-val.green { color: #2d6a4f; }
+.mp-sub-total-val.red { color: var(--nn-seal); }
 .mp-stats { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
-.mps { font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 500; color: #334155; }
-.mps.income { color: #07c160; }
-.mps.expense { color: #ee0a24; }
-.mps.green { color: #07c160; }
-.mps.red { color: #ee0a24; }
-.mps.budget { display: flex; align-items: center; gap: 4px; color: #1989fa; font-size: 11px; }
-.mp-bar { display: inline-block; width: 32px; height: 3px; background: #e8ecf1; border-radius: 2px; overflow: hidden; vertical-align: middle; }
-.mp-bar-fill { height: 100%; background: #1989fa; border-radius: 2px; }
-.mp-bar-fill.warn { background: #ff976a; }
-.mp-bar-fill.danger { background: #ee0a24; }
+.mps { font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 500; color: var(--nn-ink); }
+.mps.income { color: #2d6a4f; }
+.mps.expense { color: var(--nn-seal); }
+.mps.green { color: #2d6a4f; }
+.mps.red { color: var(--nn-seal); }
+.mps.budget { display: flex; align-items: center; gap: 4px; color: var(--nn-accent); font-size: 11px; }
+.mp-bar { display: inline-block; width: 32px; height: 3px; background: rgba(139, 90, 43, 0.12); border-radius: 2px; overflow: hidden; vertical-align: middle; }
+.mp-bar-fill { height: 100%; background: var(--nn-accent); border-radius: 2px; }
+.mp-bar-fill.warn { background: var(--nn-gold); }
+.mp-bar-fill.danger { background: var(--nn-seal); }
 
-.mp-sub { padding: 6px 12px 6px 36px; border-top: 1px solid #f0f2f5; display: flex; align-items: center; justify-content: space-between; background: #fff; }
-.mp-sub-icon { color: #b0bec5; font-size: 12px; }
-.mp-sub-name { font-size: 13px; color: #64748b; }
+.mp-sub { padding: 6px 12px 6px 36px; border-top: 1px solid rgba(139, 90, 43, 0.08); display: flex; align-items: center; justify-content: space-between; background: rgba(139, 90, 43, 0.02); }
+.mp-sub-icon { color: var(--nn-lightink); font-size: 12px; }
+.mp-sub-name { font-size: 13px; color: var(--nn-lightink); }
 .mp-sub .mp-stats { margin-left: auto; }
 
 .trend-section {
   margin: 8px;
-  background: #fff;
-  border-radius: 14px;
+  background: var(--nn-paper);
+  border-radius: var(--nn-radius);
   padding: 12px 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  box-shadow: var(--nn-shadow-seal);
 }
 .trend-header { margin-bottom: 10px; }
-.trend-title { font-size: 13px; font-weight: 700; color: #0a1628; }
+.trend-title { font-size: 13px; font-weight: 700; color: var(--nn-ink); font-family: 'Ma Shan Zheng', 'Noto Serif SC', cursive; }
 
 .trend-projects {
   display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
 }
 .tp-pill {
-  font-size: 11px; padding: 3px 10px; border-radius: 12px;
-  background: #f0f2f5; color: #8899bb; cursor: pointer;
-  font-weight: 500; transition: all .15s;
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  background: rgba(139, 90, 43, 0.08); color: var(--nn-lightink); cursor: pointer;
+  font-weight: 500; transition: all .2s var(--nn-ease);
 }
 .tp-pill.on {
-  background: #1989fa; color: #fff; font-weight: 600;
+  background: var(--nn-ink); color: var(--nn-paper); font-weight: 600;
 }
 .tp-pill.sub {
-  font-size: 10px; padding-left: 4px; color: #8a9bb5;
-  background: #edf2f7; border-left: 2px solid #8a9bb5;
-  border-radius: 4px 12px 12px 4px;
+  font-size: 10px; padding-left: 4px; color: var(--nn-lightink);
+  background: rgba(139, 90, 43, 0.04); border-left: 2px solid var(--nn-lightink);
+  border-radius: 4px 20px 20px 4px;
 }
 .tp-pill.sub.on {
-  background: #1661ab; color: #fff;
-  border-left-color: #fff;
+  background: var(--nn-ink); color: var(--nn-paper);
+  border-left-color: var(--nn-paper);
 }
-.tp-indent { font-size: 11px; color: #8a9bb5; margin: 0 1px 0 2px; }
+.tp-indent { font-size: 11px; color: var(--nn-lightink); margin: 0 1px 0 2px; }
 .tp-bar { display: none; }
 
 .trend-tabs {
   display: flex; gap: 4px; margin-bottom: 8px;
 }
 .tt-tab {
-  font-size: 12px; padding: 3px 14px; border-radius: 14px;
-  background: #f0f2f5; color: #64748b; cursor: pointer;
-  font-weight: 500; transition: all .15s;
+  font-size: 12px; padding: 3px 14px; border-radius: 20px;
+  background: rgba(139, 90, 43, 0.06); color: var(--nn-lightink); cursor: pointer;
+  font-weight: 500; transition: all .2s var(--nn-ease);
 }
 .tt-tab.on {
-  background: #0a1628; color: #fff;
+  background: var(--nn-ink); color: var(--nn-paper);
 }
 
 .trend-canvas-wrap {

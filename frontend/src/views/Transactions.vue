@@ -606,27 +606,27 @@ onMounted(async () => {
 }
 .st-item {
   flex: 1;
-  background: #fff;
-  border-radius: 10px;
+  background: var(--nn-paper);
+  border-radius: var(--nn-radius);
   padding: 10px 8px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--nn-shadow-seal);
 }
 .st-item.income .st-val {
-  color: #07c160;
+  color: #2d6a4f;
 }
 .st-item.expense .st-val {
-  color: #ee0a24;
+  color: var(--nn-seal);
 }
 .st-val {
   font-size: 16px;
   font-weight: 800;
   display: block;
-  color: #0a1628;
+  color: var(--nn-ink);
 }
 .st-lbl {
   font-size: 11px;
-  color: #8899bb;
+  color: var(--nn-lightink);
   margin-top: 2px;
 }
 
@@ -635,19 +635,19 @@ onMounted(async () => {
   display: flex; gap: 8px; margin-bottom: 10px;
 }
 .pk-item {
-  flex: 1; background: #fff; border-radius: 10px;
-  padding: 8px 10px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  flex: 1; background: var(--nn-paper); border-radius: var(--nn-radius);
+  padding: 8px 10px; box-shadow: var(--nn-shadow-seal);
   display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
 }
 .pk-lbl { font-size: 11px; font-weight: 700; flex-shrink: 0; }
-.pk-item.pos .pk-lbl { color: #07c160; }
-.pk-item.neg .pk-lbl { color: #ee0a24; }
-.pk-date { font-size: 11px; color: #8899bb; }
+.pk-item.pos .pk-lbl { color: #2d6a4f; }
+.pk-item.neg .pk-lbl { color: var(--nn-seal); }
+.pk-date { font-size: 11px; color: var(--nn-lightink); }
 .pk-val { font-size: 14px; font-weight: 800; }
-.pk-item.pos .pk-val { color: #07c160; }
-.pk-item.neg .pk-val { color: #ee0a24; }
+.pk-item.pos .pk-val { color: #2d6a4f; }
+.pk-item.neg .pk-val { color: var(--nn-seal); }
 .pk-proj {
-  font-size: 10px; color: #8899bb;
+  font-size: 10px; color: var(--nn-lightink);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   min-width: 0;
 }
@@ -658,10 +658,10 @@ onMounted(async () => {
   align-items: center;
   gap: 4px;
   margin-bottom: 10px;
-  background: #fff;
-  border-radius: 10px;
+  background: var(--nn-paper);
+  border-radius: var(--nn-radius);
   padding: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--nn-shadow-seal);
   flex-wrap: wrap;
 }
 .fl-item {
@@ -674,7 +674,7 @@ onMounted(async () => {
   width: auto;
   margin-right: 2px;
   font-size: 11px;
-  color: #8899bb;
+  color: var(--nn-lightink);
 }
 .fl-item :deep(.van-field__control) {
   font-size: 12px;
@@ -694,26 +694,26 @@ onMounted(async () => {
 
 /* ── 流水列表 ── */
 .tx-list {
-  background: #fff;
-  border-radius: 10px;
+  background: var(--nn-paper);
+  border-radius: var(--nn-radius);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--nn-shadow-seal);
 }
 .tx-header {
   display: flex;
   align-items: center;
   padding: 8px 10px;
-  background: #f8f9fb;
+  background: rgba(139,90,43,0.04);
   font-size: 11px;
-  color: #8899bb;
+  color: var(--nn-lightink);
   font-weight: 600;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid rgba(139,90,43,0.10);
 }
 .tx-row {
   display: flex;
   align-items: center;
   padding: 10px;
-  border-bottom: 1px solid #f5f6f8;
+  border-bottom: 1px solid rgba(139,90,43,0.10);
   font-size: 12px;
 }
 .tx-row:last-child {
@@ -731,7 +731,7 @@ onMounted(async () => {
   width: 28px;
   flex-shrink: 0;
   text-align: center;
-  color: #8899bb;
+  color: var(--nn-lightink);
   font-size: 11px;
 }
 .th-amount,
@@ -757,7 +757,7 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #8899bb;
+  color: var(--nn-lightink);
   font-size: 11px;
 }
 .th-actions,
@@ -770,20 +770,20 @@ onMounted(async () => {
 }
 
 .td-amount.green {
-  color: #07c160;
+  color: #2d6a4f;
 }
 .td-amount.red {
-  color: #ee0a24;
+  color: var(--nn-seal);
 }
 
 .act-icon {
   font-size: 16px;
-  color: #1989fa;
+  color: var(--nn-accent);
   cursor: pointer;
   padding: 2px;
 }
 .act-icon.del {
-  color: #ee0a24;
+  color: var(--nn-seal);
 }
 
 /* ── 分页 ── */
@@ -804,7 +804,7 @@ onMounted(async () => {
 .form-title {
   font-size: 17px;
   font-weight: 700;
-  color: #0a1628;
+  color: var(--nn-ink);
   text-align: center;
   margin-bottom: 16px;
 }

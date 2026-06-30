@@ -97,7 +97,7 @@ async function onSubmit() {
 <style scoped>
 .login-overlay {
   position: fixed; inset: 0; z-index: 2000;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(30, 20, 10, 0.45);
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
   animation: fadeIn .2s ease;
@@ -105,7 +105,7 @@ async function onSubmit() {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .login-card {
-  position: relative; background: #fff; border-radius: 20px;
+  position: relative; background: var(--nn-paper); border-radius: 20px;
   width: 100%; max-width: 360px; padding: 36px 24px 24px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
   animation: slideUp .3s ease;
@@ -118,29 +118,29 @@ async function onSubmit() {
   position: absolute; top: 14px; right: 14px;
   width: 30px; height: 30px; display: flex;
   align-items: center; justify-content: center;
-  border-radius: 50%; font-size: 16px; color: #bbb; cursor: pointer;
+  border-radius: 50%; font-size: 16px; color: var(--nn-lightink); cursor: pointer;
 }
-.login-close:active { background: #f5f5f5; color: #666; }
+.login-close:active { background: rgba(139, 90, 43, 0.08); color: #666; }
 .login-brand { text-align: center; margin-bottom: 24px; }
 .brand-icon { font-size: 40px; margin-bottom: 8px; }
-.brand-title { margin: 0; font-size: 20px; font-weight: 700; color: #0a1628; }
-.brand-desc { margin: 4px 0 0; font-size: 12px; color: #aaa; }
+.brand-title { margin: 0; font-size: 20px; font-weight: 700; color: var(--nn-ink); }
+.brand-desc { margin: 4px 0 0; font-size: 12px; color: var(--nn-lightink); }
 .mode-switch {
-  display: flex; background: #f0f2f5; border-radius: 10px;
+  display: flex; background: rgba(139, 90, 43, 0.08); border-radius: 10px;
   padding: 4px; margin-bottom: 20px;
 }
 .mode-switch span {
   flex: 1; text-align: center; padding: 8px 0;
-  font-size: 14px; font-weight: 500; color: #999;
+  font-size: 14px; font-weight: 500; color: var(--nn-lightink);
   border-radius: 8px; cursor: pointer; transition: all .2s;
 }
 .mode-switch span.active {
-  background: #fff; color: #4da6ff; font-weight: 600;
+  background: #fff; color: var(--nn-accent); font-weight: 600;
   box-shadow: 0 1px 4px rgba(0,0,0,.08);
 }
 .field-wrap {
   display: flex; align-items: center; gap: 10px;
-  background: #f7f8fa; border-radius: 12px;
+  background: rgba(139, 90, 43, 0.04); border-radius: 12px;
   padding: 0 14px; margin-bottom: 12px;
 }
 .field-wrap:focus-within { background: #eef2ff; }
@@ -153,11 +153,11 @@ async function onSubmit() {
 .submit-btn {
   margin-top: 16px; height: 46px; font-size: 16px; font-weight: 600;
   letter-spacing: 4px;
-  background: linear-gradient(135deg, #4da6ff, #0a1628);
+  background: linear-gradient(135deg, var(--nn-accent), var(--nn-ink));
   border: none; border-radius: 23px;
 }
 .login-bottom {
   text-align: center; padding: 16px 0 0;
-  font-size: 11px; color: #ccc;
+  font-size: 11px; color: var(--nn-lightink);
 }
 </style>

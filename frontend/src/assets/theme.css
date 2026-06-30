@@ -1,0 +1,163 @@
+/* ═══════════ NeuNav 灵境风格主题 ═══════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Ma+Shan+Zheng&display=swap');
+
+:root {
+  /* ── 宣纸/墨色调色板 ── */
+  --nn-bg: #f0e6d3;
+  --nn-bg2: #d4a574;
+  --nn-ink: #3b2210;
+  --nn-accent: #8b4513;
+  --nn-paper: #faf6f0;
+  --nn-lightink: #a09080;
+  --nn-seal: #c03020;
+  --nn-gold: #b8860b;
+
+  /* ── 印章圆角 ── */
+  --nn-radius: 2px 8px 2px 8px;
+  --nn-radius-sm: 2px 6px 2px 6px;
+
+  /* ── 笔触缓动 ── */
+  --nn-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── 阴影层级 ── */
+  --nn-shadow-seal: 0 4px 6px -1px rgba(59, 50, 44, 0.10);
+  --nn-shadow-ink: 0 8px 20px -6px rgba(59, 50, 44, 0.20);
+
+  /* ── 覆盖 Vant CSS 变量 ── */
+  --van-background: #f0e6d3;
+  --van-background-2: #faf6f0;
+  --van-cell-background: #faf6f0;
+  --van-text-color: #3b2210;
+  --van-text-color-2: #a09080;
+  --van-border-color: rgba(139, 90, 43, 0.12);
+  --van-primary-color: #8b4513;
+  --van-danger-color: #c03020;
+  --van-success-color: #2d6a4f;
+  --van-warning-color: #b8860b;
+  --van-tabbar-background: #faf6f0;
+  --van-tabbar-item-text-color: #a09080;
+  --van-tabbar-item-active-color: #3b2210;
+  --van-popup-background: #faf6f0;
+  --van-dialog-background: #faf6f0;
+  --van-picker-background: #faf6f0;
+  --van-button-primary-background: #3b2210;
+  --van-button-primary-border-color: #3b2210;
+}
+
+[data-theme="dark"] {
+  --nn-bg: #1a1a2e;
+  --nn-bg2: #16213e;
+  --nn-ink: #e0d8c0;
+  --nn-accent: #c9a84c;
+  --nn-paper: #1e1e32;
+  --nn-lightink: #8a8570;
+  --nn-seal: #d4a84c;
+  --nn-gold: #c9a84c;
+  --nn-shadow-seal: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+  --nn-shadow-ink: 0 8px 20px -6px rgba(0, 0, 0, 0.35);
+
+  --van-background: #1a1a2e;
+  --van-background-2: #1e1e32;
+  --van-cell-background: #1e1e32;
+  --van-text-color: #e0d8c0;
+  --van-text-color-2: #8a8570;
+  --van-border-color: rgba(201, 168, 76, 0.12);
+  --van-primary-color: #c9a84c;
+  --van-tabbar-background: #1e1e32;
+  --van-tabbar-item-text-color: #8a8570;
+  --van-tabbar-item-active-color: #e0d8c0;
+  --van-popup-background: #1e1e32;
+  --van-dialog-background: #1e1e32;
+  --van-picker-background: #1e1e32;
+  --van-button-primary-background: #c9a84c;
+  --van-button-primary-border-color: #c9a84c;
+}
+
+/* ── 全局重置 ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Serif SC', 'PingFang SC', 'Hiragino Sans GB', serif;
+  background: var(--nn-bg);
+  color: var(--nn-ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.8s var(--nn-ease), color 0.8s var(--nn-ease);
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--nn-bg);
+  min-height: 100vh;
+}
+
+/* ── 覆盖 Vant TabBar ── */
+.van-tabbar {
+  background: var(--nn-paper) !important;
+  border-top: 1px solid rgba(139, 90, 43, 0.10) !important;
+  box-shadow: 0 -2px 12px rgba(59, 50, 44, 0.06) !important;
+}
+
+.van-tabbar-item--active {
+  color: var(--nn-ink) !important;
+}
+
+/* ── 覆盖 Vant NavBar ── */
+.van-nav-bar {
+  background: var(--nn-paper) !important;
+  border-bottom: 1px solid rgba(139, 90, 43, 0.10);
+}
+
+/* ── 覆盖 Vant Button ── */
+.van-button--primary {
+  background: var(--nn-ink) !important;
+  border-color: var(--nn-ink) !important;
+  border-radius: 2px 8px 2px 8px !important;
+}
+
+.van-button--default {
+  border-radius: 2px 8px 2px 8px !important;
+}
+
+/* ── 覆盖 Vant Cell / Field ── */
+.van-cell {
+  background: var(--nn-paper) !important;
+}
+
+.van-field__control {
+  color: var(--nn-ink) !important;
+}
+
+/* ── 覆盖 Vant Popup ── */
+.van-popup--center {
+  border-radius: 4px 12px 4px 12px !important;
+}
+
+/* ── 覆盖 Vant Picker ── */
+.van-picker__toolbar {
+  background: var(--nn-paper) !important;
+}
+
+/* ── 覆盖 Vant Empty ── */
+.van-empty__description {
+  color: var(--nn-lightink) !important;
+}
+
+/* ── 滚动条美化 ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--nn-lightink); border-radius: 2px; }
+
+/* ── 字体设置 ── */
+h1, h2, h3, h4, .form-title, .modal-title, .trend-title {
+  font-family: 'Ma Shan Zheng', 'Noto Serif SC', cursive;
+  font-weight: 600;
+}
+
+/* ── 输入框 ── */
+input, textarea, select {
+  font-family: 'Noto Serif SC', serif;
+}

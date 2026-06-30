@@ -761,7 +761,7 @@ watch(projects, () => buildParentColumns(), { immediate: true })
 /* ── Expand/Collapse ── */
 .pc-expand-icon {
   font-size: 11px;
-  color: #8899bb;
+  color: var(--nn-lightink);
   cursor: pointer;
   width: 16px;
   flex-shrink: 0;
@@ -782,25 +782,25 @@ watch(projects, () => buildParentColumns(), { immediate: true })
   gap: 6px;
 }
 .pc-sub-card {
-  border-left: 3px solid #07c160;
+  border-left: 3px solid #2d6a4f;
   padding: 10px 14px;
 }
 
 /* ── Section label ── */
 .pc-section-label {
   font-size: 12px;
-  color: #8899bb;
+  color: var(--nn-lightink);
   padding: 8px 0 4px 4px;
   font-weight: 600;
 }
 
 .pc-card {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--nn-paper);
+  border-radius: var(--nn-radius);
   padding: 14px 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--nn-shadow-seal);
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  transition: box-shadow .2s var(--nn-ease);
 }
 .pc-card:active {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -813,8 +813,8 @@ watch(projects, () => buildParentColumns(), { immediate: true })
   margin-bottom: 10px;
 }
 .pc-code {
-  background: #e8ecf1;
-  color: #0a1628;
+  background: rgba(139,90,43,0.12);
+  color: var(--nn-ink);
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 4px;
@@ -823,12 +823,12 @@ watch(projects, () => buildParentColumns(), { immediate: true })
 .pc-name {
   font-size: 15px;
   font-weight: 600;
-  color: #0a1628;
+  color: var(--nn-ink);
   flex: 1;
 }
 .pc-tag {
-  background: #1989fa;
-  color: #fff;
+  background: var(--nn-accent);
+  color: var(--nn-paper);
   font-size: 10px;
   padding: 1px 6px;
   border-radius: 3px;
@@ -836,15 +836,15 @@ watch(projects, () => buildParentColumns(), { immediate: true })
 }
 .pc-parent {
   font-size: 11px;
-  color: #8899bb;
+  color: var(--nn-lightink);
   white-space: nowrap;
 }
 .pc-alert-badge {
   font-size: 12px;
 }
 .pc-level-badge {
-  background: linear-gradient(135deg, #1989fa, #7c4dff);
-  color: #fff;
+  background: linear-gradient(135deg, var(--nn-accent), #7c4dff);
+  color: var(--nn-paper);
   font-size: 10px;
   padding: 1px 6px;
   border-radius: 3px;
@@ -862,10 +862,10 @@ watch(projects, () => buildParentColumns(), { immediate: true })
   font-weight: 800;
 }
 .pc-net.green {
-  color: #07c160;
+  color: #2d6a4f;
 }
 .pc-net.red {
-  color: #ee0a24;
+  color: var(--nn-seal);
 }
 
 .pc-stats {
@@ -882,25 +882,25 @@ watch(projects, () => buildParentColumns(), { immediate: true })
 .pc-bar-wrap {
   width: 60px;
   height: 6px;
-  background: #e8ecf1;
+  background: rgba(139,90,43,0.12);
   border-radius: 3px;
   overflow: hidden;
 }
 .pc-bar {
   height: 100%;
-  background: #1989fa;
+  background: var(--nn-accent);
   border-radius: 3px;
-  transition: width 0.3s;
+  transition: width .3s var(--nn-ease);
 }
 .pc-bar.warn {
   background: #ff976a;
 }
 .pc-bar.danger {
-  background: #ee0a24;
+  background: var(--nn-seal);
 }
 .pc-bar-label {
   font-size: 11px;
-  color: #8899bb;
+  color: var(--nn-lightink);
   margin-top: 2px;
 }
 .pc-sl {
@@ -908,16 +908,16 @@ watch(projects, () => buildParentColumns(), { immediate: true })
   font-weight: 600;
 }
 .pc-sl.green {
-  color: #07c160;
+  color: #2d6a4f;
 }
 .pc-sl.red {
-  color: #ee0a24;
+  color: var(--nn-seal);
 }
 
 .pc-empty {
   text-align: center;
   padding: 40px 0;
-  color: #8899bb;
+  color: var(--nn-lightink);
   font-size: 14px;
 }
 
@@ -928,7 +928,7 @@ watch(projects, () => buildParentColumns(), { immediate: true })
   left: 0;
   right: 0;
   padding: 10px 16px;
-  background: linear-gradient(transparent, #f5f7fa 40%);
+  background: linear-gradient(transparent, rgba(139,90,43,0.06) 40%);
 }
 
 /* ── Detail Popup ── */
@@ -953,11 +953,11 @@ watch(projects, () => buildParentColumns(), { immediate: true })
 .dh-title {
   font-size: 18px;
   font-weight: 700;
-  color: #0a1628;
+  color: var(--nn-ink);
 }
 .dh-code {
   font-size: 12px;
-  color: #8899bb;
+  color: var(--nn-lightink);
 }
 
 /* ── Tabs ── */
@@ -978,7 +978,7 @@ watch(projects, () => buildParentColumns(), { immediate: true })
 .levels-empty {
   text-align: center;
   padding: 36px 16px;
-  color: #8899bb;
+  color: var(--nn-lightink);
   font-size: 14px;
 }
 
@@ -987,19 +987,19 @@ watch(projects, () => buildParentColumns(), { immediate: true })
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
-  background: #fff;
+  background: var(--nn-paper);
   margin: 6px 16px;
   padding: 12px 14px;
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: var(--nn-radius);
+  box-shadow: var(--nn-shadow-seal);
   cursor: pointer;
-  transition: all .15s;
-  border-left: 3px solid #e8ecf1;
+  transition: all .2s var(--nn-ease);
+  border-left: 3px solid rgba(139,90,43,0.12);
   position: relative;
 }
-.level-card:active { background: #f7f8fa; }
-.level-card.lc-met { border-left-color: #07c160; }
-.level-card.lc-drawdown { border-left-color: #ff976a; background: #fffaf5; }
+.level-card:active { background: rgba(139,90,43,0.06); }
+.level-card.lc-met { border-left-color: #2d6a4f; }
+.level-card.lc-drawdown { border-left-color: #ff976a; background: rgba(139,90,43,0.04); }
 
 .lc-top {
   display: flex; align-items: center; gap: 8px; flex: none;
@@ -1007,25 +1007,25 @@ watch(projects, () => buildParentColumns(), { immediate: true })
 }
 .lc-index {
   width: 30px; height: 30px; border-radius: 50%;
-  background: linear-gradient(135deg, #1989fa, #0a5fd8);
-  color: #fff; font-weight: 800; font-size: 12px;
+  background: linear-gradient(135deg, var(--nn-accent), #0a5fd8);
+  color: var(--nn-paper); font-weight: 800; font-size: 12px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 .lc-name {
-  font-size: 14px; font-weight: 600; color: #0a1628; flex: 1;
+  font-size: 14px; font-weight: 600; color: var(--nn-ink); flex: 1;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .lc-status {
   font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0;
 }
-.lc-status.met { background: #e8f5e9; color: #07c160; }
+.lc-status.met { background: rgba(45,106,79,0.10); color: #2d6a4f; }
 .lc-status.not-met { background: #fff3e0; color: #ff976a; }
 .lc-status.drawdown { background: #fef3e7; color: #ff6b00; }
 
 .lc-unlocked-tag {
-  font-size: 11px; color: #1989fa; padding: 1px 6px;
-  background: #eef3ff; border-radius: 4px; flex-shrink: 0;
+  font-size: 11px; color: var(--nn-accent); padding: 1px 6px;
+  background: rgba(139,90,43,0.06); border-radius: 4px; flex-shrink: 0;
   align-self: flex-start;
 }
 
@@ -1035,18 +1035,18 @@ watch(projects, () => buildParentColumns(), { immediate: true })
   padding-left: 40px;
 }
 .lc-condition {
-  font-size: 12px; color: #334155; font-weight: 500;
+  font-size: 12px; color: var(--nn-ink); font-weight: 500;
 }
-.lc-condition.ok { color: #07c160; }
-.lc-condition.fail { color: #ee0a24; }
+.lc-condition.ok { color: #2d6a4f; }
+.lc-condition.fail { color: var(--nn-seal); }
 
 .lc-delete {
   position: absolute; top: 10px; right: 10px;
-  color: #ee0a24; padding: 6px; cursor: pointer; flex-shrink: 0;
+  color: var(--nn-seal); padding: 6px; cursor: pointer; flex-shrink: 0;
 }
 
 .lc-desc-toggle {
-  font-size: 12px; color: #1989fa; cursor: pointer;
+  font-size: 12px; color: var(--nn-accent); cursor: pointer;
   padding: 4px 0; user-select: none;
 }
 .lc-desc-toggle:active { opacity: 0.7; }
@@ -1059,7 +1059,7 @@ watch(projects, () => buildParentColumns(), { immediate: true })
   text-align: center;
   font-size: 17px;
   font-weight: 700;
-  color: #0a1628;
+  color: var(--nn-ink);
   margin-bottom: 12px;
 }
 .af-actions {

@@ -739,22 +739,23 @@ def delete_expansion(eid: int, user: dict = Depends(get_current_user)):
 # ═══════════ 汇总统计 API ═══════════
 
 def _get_date_filter(period: str) -> str:
-    """返回 SQL 日期过滤条件字符串，不含 'AND' 前缀"""
     today = date.today()
-    if period == "today":
+    if not period or period == "all":
+        return ""
+    elif period == "today":
         return f"date = '{today.isoformat()}'"
     elif period == "yesterday":
-        y = today - timedelta(days=1)
-        return f"date = '{y.isoformat()}'"
+        yest = (today - timedelta(days=1)).isoformat()
+        return f"date = '{yest}'"
     elif period == "week":
         monday = today - timedelta(days=today.weekday())
         sunday = monday + timedelta(days=6)
         return f"date >= '{monday.isoformat()}' AND date <= '{sunday.isoformat()}'"
     elif period == "last_week":
         monday = today - timedelta(days=today.weekday())
-        last_start = monday - timedelta(days=7)
-        last_end = monday - timedelta(days=1)
-        return f"date >= '{last_start.isoformat()}' AND date <= '{last_end.isoformat()}'"
+        last_monday = monday - timedelta(days=7)
+        last_sunday = monday - timedelta(days=1)
+        return f"date >= '{last_monday.isoformat()}' AND date <= '{last_sunday.isoformat()}'"
     elif period == "month":
         start = today.replace(day=1).isoformat()
         return f"date >= '{start}'"
@@ -775,6 +776,44 @@ def _get_date_filter(period: str) -> str:
         return f"date >= '{last_start}' AND date <= '{last_end}'"
     return ""
 
+def _get_period_boundary(period: str) -> tuple:
+    """返回 (start_date_str_for_before_query, None_if_open_ended)"""
+    today = date.today()
+    if not period or period == "all":
+        return (None, None)  # 无限范围
+    elif period == "today":
+        return (today.isoformat(), (today + timedelta(days=1)).isoformat())
+    elif period == "yesterday":
+        yest = today - timedelta(days=1)
+        return (yest.isoformat(), today.isoformat())
+    elif period == "week":
+        monday = today - timedelta(days=today.weekday())
+        return (monday.isoformat(), (monday + timedelta(days=7)).isoformat())
+    elif period == "last_week":
+        monday = today - timedelta(days=today.weekday())
+        last_monday = monday - timedelta(days=7)
+        return (last_monday.isoformat(), monday.isoformat())
+    elif period == "month":
+        start = today.replace(day=1)
+        end = (start.replace(month=start.month % 12 + 1, day=1) if start.month < 12
+               else start.replace(year=start.year + 1, month=1, day=1))
+        return (start.isoformat(), end.isoformat())
+    elif period == "last_month":
+        first = today.replace(day=1)
+        if first.month == 1:
+            last_start = first.replace(year=first.year-1, month=12, day=1)
+        else:
+            last_start = first.replace(month=first.month-1, day=1)
+        return (last_start.isoformat(), first.isoformat())
+    elif period == "year":
+        start = today.replace(month=1, day=1)
+        return (start.isoformat(), today.replace(year=today.year + 1, month=1, day=1).isoformat())
+    elif period == "last_year":
+        last_start = today.replace(year=today.year-1, month=1, day=1)
+        last_end = today.replace(year=today.year, month=1, day=1)
+        return (last_start.isoformat(), last_end.isoformat())
+    return (None, None)
+
 def _calc_project_stats(db, pid: int, date_filter: str) -> dict:
     """计算单个项目的统计（含子项目）"""
     fc = f" AND {date_filter}" if date_filter else ""
@@ -788,41 +827,61 @@ def _calc_project_stats(db, pid: int, date_filter: str) -> dict:
         "expense": round(abs(rows["expense"]), 2),
     }
 
-def _build_project_tree(db, date_filter: str) -> list:
-    """构建项目层级树：主项目 → 子项目，每个带统计"""
+def _calc_project_balance(db, pid: int, before_date: str) -> float:
+    """计算某个日期之前的累计余额"""
+    row = db.execute(
+        "SELECT COALESCE(SUM(amount),0) as bal FROM transactions WHERE project_id=? AND date < ?",
+        (pid, before_date)
+    ).fetchone()
+    return round(row["bal"], 2)
+
+def _build_project_tree(db, period: str) -> list:
+    """构建项目层级树，含本期统计 + 上期余额"""
+    date_filter = _get_date_filter(period)
+    boundary = _get_period_boundary(period)
+    
     projs = db.execute("SELECT * FROM projects WHERE category!='other' ORDER BY code").fetchall()
-    # 分开主项目和子项目
     main = [p for p in projs if not p["parent_id"]]
     subs = [p for p in projs if p["parent_id"]]
     
     result = []
     for m in main:
-        # 子项目统计 + 聚合到主项目
         children = []
         agg = {"net": 0, "income": 0, "expense": 0}
+        agg_balance_before = 0
         for s in subs:
             if s["parent_id"] == m["id"]:
                 cs = _calc_project_stats(db, s["id"], date_filter)
                 agg["net"] += cs["net"]
                 agg["income"] += cs["income"]
                 agg["expense"] += cs["expense"]
+                # 上期余额
+                balance_before = _calc_project_balance(db, s["id"], boundary[0]) if boundary[0] else None
+                agg_balance_before += (balance_before or 0)
+                balance_after = round((balance_before or 0) + cs["net"], 2) if balance_before is not None else None
                 children.append({
                     "id": s["id"], "name": s["name"], "code": s["code"],
                     "net": cs["net"], "income": cs["income"], "expense": cs["expense"],
                     "budget": s["budget"], "stop_loss": s["stop_loss"],
                     "budget_usage": round(cs["expense"] / s["budget"] * 100, 1) if s["budget"] > 0 else 0,
+                    "balance_before": balance_before,
+                    "balance_after": balance_after,
                 })
-        # 主项目也查自己的流水（兜底，通常为0）
         self_stats = _calc_project_stats(db, m["id"], date_filter)
         agg["net"] += self_stats["net"]
         agg["income"] += self_stats["income"]
         agg["expense"] += self_stats["expense"]
+        # 主项目上期余额（所有子项目余额之和）
+        balance_before_main = agg_balance_before
+        balance_after_main = round(balance_before_main + agg["net"], 2) if boundary[0] else None
         result.append({
             "id": m["id"], "name": m["name"], "code": m["code"],
             "net": round(agg["net"], 2), "income": round(agg["income"], 2), "expense": round(agg["expense"], 2),
             "budget": m["budget"], "stop_loss": m["stop_loss"],
             "budget_usage": round(agg["expense"] / m["budget"] * 100, 1) if m["budget"] > 0 else 0,
             "stop_loss_diff": round(agg["net"] - m["stop_loss"], 2) if m["stop_loss"] else 0,
+            "balance_before": balance_before_main if boundary[0] else None,
+            "balance_after": balance_after_main if boundary[0] else None,
             "sub_projects": children,
         })
     return result
@@ -837,7 +896,7 @@ def get_stats(period: str = "all", user: dict = Depends(get_current_user)):
         f"SELECT COALESCE(SUM(amount),0) as net, COUNT(*) as cnt FROM transactions WHERE 1=1{fc}"
     ).fetchone()
     
-    projects = _build_project_tree(db, date_filter)
+    projects = _build_project_tree(db, period)
     
     db.close()
     return {

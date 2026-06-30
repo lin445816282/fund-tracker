@@ -55,16 +55,27 @@ onMounted(loadAlerts)
 </script>
 
 <style scoped>
-.alert-card { padding: 12px 16px; }
-.alert-card.level-danger { border-left: 3px solid #ee0a24; }
-.alert-card.level-warning { border-left: 3px solid #ff976a; }
+.alert-card {
+  padding: 12px 16px;
+  background: var(--nn-paper);
+  border-radius: var(--nn-radius-sm);
+  box-shadow: var(--nn-shadow-seal);
+}
+.alert-card.level-danger { border-left: 3px solid var(--nn-seal); }
+.alert-card.level-warning { border-left: 3px solid var(--nn-gold); }
 .ac-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .ac-icon { font-size: 14px; }
-.ac-project { font-weight: 700; font-size: 14px; color: #0a1628; }
-.ac-type { font-size: 11px; background: #f0f2f5; padding: 2px 8px; border-radius: 10px; color: #64748b; }
-.ac-status { font-size: 11px; color: #8899bb; margin-left: auto; }
-.ac-msg { font-size: 13px; color: #64748b; margin-bottom: 4px; }
-.ac-time { font-size: 11px; color: #aab; margin-bottom: 8px; }
+.ac-project { font-weight: 700; font-size: 14px; color: var(--nn-ink); }
+.ac-type {
+  font-size: 11px;
+  background: rgba(139, 90, 43, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--nn-radius-sm);
+  color: var(--nn-lightink);
+}
+.ac-status { font-size: 11px; color: var(--nn-lightink); margin-left: auto; }
+.ac-msg { font-size: 13px; color: var(--nn-lightink); margin-bottom: 4px; }
+.ac-time { font-size: 11px; color: var(--nn-lightink); margin-bottom: 8px; }
 .ac-actions { display: flex; gap: 8px; }
-.ac-note { font-size: 11px; color: #07c160; margin-top: 4px; }
+.ac-note { font-size: 11px; color: #2d6a4f; margin-top: 4px; }
 </style>

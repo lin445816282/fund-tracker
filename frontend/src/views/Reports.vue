@@ -352,94 +352,94 @@ onMounted(() => {
 /* 概览条 */
 .stat-strip {
   display: flex; gap: 0; margin: 0 12px 8px;
-  background: #fff; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  background: var(--nn-paper); border-radius: 12px; overflow: hidden;
+  box-shadow: var(--nn-shadow-seal);
 }
 .ss-item {
   flex: 1; text-align: center; padding: 10px 4px;
-  border-right: 1px solid #f0f2f5;
+  border-right: 1px solid rgba(139, 69, 19, 0.08);
 }
 .ss-item:last-child { border-right: none; }
 .ss-val {
-  display: block; font-size: 15px; font-weight: 700; color: #0a1628;
+  display: block; font-size: 15px; font-weight: 700; color: var(--nn-ink);
 }
-.ss-val.income { color: #07c160; }
-.ss-val.expense { color: #ee0a24; }
-.ss-val.green { color: #07c160; }
-.ss-val.red { color: #ee0a24; }
-.ss-label { font-size: 10px; color: #8899bb; margin-top: 2px; }
+.ss-val.income { color: var(--van-success-color); }
+.ss-val.expense { color: var(--nn-seal); }
+.ss-val.green { color: var(--van-success-color); }
+.ss-val.red { color: var(--nn-seal); }
+.ss-label { font-size: 10px; color: var(--nn-lightink); margin-top: 2px; }
 
 /* 表格 */
-.report-table { background: #fff; border-radius: 12px; overflow: hidden; }
+.report-table { background: var(--nn-paper); border-radius: 12px; overflow: hidden; }
 
 .rt-header {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1.4fr 0.7fr;
   gap: 2px; padding: 10px 8px;
-  background: #f0f4f8;
-  font-size: 11px; font-weight: 700; color: #64748b; text-align: center;
+  background: var(--nn-bg);
+  font-size: 11px; font-weight: 700; color: var(--nn-lightink); text-align: center;
 }
 
 .rt-row {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1.4fr 0.7fr;
   gap: 2px; padding: 12px 8px;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid rgba(139, 69, 19, 0.08);
   align-items: center; text-align: center; font-size: 13px;
   transition: background .15s;
 }
 .rt-row:last-child { border-bottom: none; }
 .rt-row.has-children { cursor: pointer; }
-.rt-row.has-children:active { background: #f7f8fa; }
-.rt-row.sub-row { background: #fafbfc; padding-left: 20px; }
+.rt-row.has-children:active { background: rgba(59, 34, 16, 0.04); }
+.rt-row.sub-row { background: var(--nn-paper); padding-left: 20px; }
 .rt-row.sub-row .rth-name { padding-left: 12px; }
 .rt-row.totals {
-  background: #e8f0fe; font-weight: 700; border-top: 2px solid #1989fa;
+  background: var(--nn-bg); font-weight: 700; border-top: 2px solid var(--nn-accent);
 }
 
 .rth-name {
-  text-align: left; font-weight: 500; color: #0a1628;
+  text-align: left; font-weight: 500; color: var(--nn-ink);
   display: flex; align-items: center; gap: 4px;
   overflow: hidden; white-space: nowrap;
 }
 .rth-name.totals-label { justify-content: flex-start; }
 
 .rth-val {
-  color: #334155; font-variant-numeric: tabular-nums;
+  color: var(--nn-ink); font-variant-numeric: tabular-nums;
   overflow: hidden; white-space: nowrap;
 }
-.rth-val.green { color: #07c160; }
-.rth-val.red { color: #ee0a24; }
-.rth-val.income { color: #07c160; }
-.rth-val.expense { color: #ee0a24; }
-.rth-val.na { color: #b0bec5; }
+.rth-val.green { color: var(--van-success-color); }
+.rth-val.red { color: var(--nn-seal); }
+.rth-val.income { color: var(--van-success-color); }
+.rth-val.expense { color: var(--nn-seal); }
+.rth-val.na { color: var(--nn-lightink); }
 
 .sortable { cursor: pointer; user-select: none; }
-.sortable.active { color: #1989fa; font-weight: 700; }
+.sortable.active { color: var(--nn-accent); font-weight: 700; }
 
 .budget-cell {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
 }
 
 .expand-icon {
-  font-size: 10px; color: #8899bb; width: 14px;
+  font-size: 10px; color: var(--nn-lightink); width: 14px;
   display: inline-block; text-align: center;
 }
 .pr-code {
-  background: #e8ecf1; color: #0a1628; font-weight: 700;
+  background: var(--nn-bg); color: var(--nn-ink); font-weight: 700;
   padding: 1px 6px; border-radius: 3px; font-size: 11px; flex-shrink: 0;
 }
-.sub-name { font-size: 12px; color: #64748b; }
+.sub-name { font-size: 12px; color: var(--nn-lightink); }
 
 .usage-badge {
   display: inline-block; padding: 2px 6px; border-radius: 4px;
   font-size: 10px; font-weight: 600;
-  background: #e8f0fe; color: #1989fa;
+  background: var(--nn-bg); color: var(--nn-accent);
 }
-.usage-badge.warn { background: #fff3e0; color: #ff976a; }
-.usage-badge.danger { background: #fde8ec; color: #ee0a24; }
+.usage-badge.warn { background: #fff3e0; color: var(--nn-gold); }
+.usage-badge.danger { background: #fde8ec; color: var(--nn-seal); }
 
-.rt-empty { padding: 32px 0; text-align: center; color: #8899bb; font-size: 14px; }
+.rt-empty { padding: 32px 0; text-align: center; color: var(--nn-lightink); font-size: 14px; }
 .rt-loading { display: flex; justify-content: center; padding: 32px 0; }
 
 /* 图表区 */
@@ -448,20 +448,20 @@ onMounted(() => {
 .chart-row:last-child { margin-bottom: 0; }
 .chart-row.sub-chart { padding-left: 16px; }
 .chart-label {
-  width: 56px; font-size: 12px; font-weight: 600; color: #0a1628;
+  width: 56px; font-size: 12px; font-weight: 600; color: var(--nn-ink);
   flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.chart-label.sub-label { font-size: 11px; color: #64748b; font-weight: 500; }
+.chart-label.sub-label { font-size: 11px; color: var(--nn-lightink); font-weight: 500; }
 .chart-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
 .chart-bar-wrap {
-  position: relative; height: 20px; background: #f0f2f5;
+  position: relative; height: 20px; background: var(--nn-bg);
   border-radius: 4px; overflow: hidden;
 }
 .chart-bar {
   height: 100%; border-radius: 4px; min-width: 4px; transition: width .4s ease;
 }
-.chart-bar.income-bar { background: linear-gradient(90deg, #07c160, #06ae56); }
-.chart-bar.expense-bar { background: linear-gradient(90deg, #ee0a24, #d0081f); }
+.chart-bar.income-bar { background: linear-gradient(90deg, var(--van-success-color), #1b4332); }
+.chart-bar.expense-bar { background: linear-gradient(90deg, var(--nn-seal), #9a1a1a); }
 .chart-bar.sub-bar { opacity: .55; }
 .chart-bar-val {
   position: absolute; top: 50%; left: 6px; transform: translateY(-50%);
