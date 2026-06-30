@@ -734,7 +734,8 @@ def _get_date_filter(period: str) -> str:
         return f"date = '{y.isoformat()}'"
     elif period == "week":
         monday = today - timedelta(days=today.weekday())
-        return f"date >= '{monday.isoformat()}'"
+        sunday = monday + timedelta(days=6)
+        return f"date >= '{monday.isoformat()}' AND date <= '{sunday.isoformat()}'"
     elif period == "last_week":
         monday = today - timedelta(days=today.weekday())
         last_start = monday - timedelta(days=7)
@@ -839,6 +840,7 @@ def get_summary():
     
     # 本周一
     monday = today - timedelta(days=today.weekday())
+    sunday = monday + timedelta(days=6)
     # 上周：上上周一到上周日
     last_week_start = monday - timedelta(days=7)
     last_week_end = monday - timedelta(days=1)
@@ -879,7 +881,7 @@ def get_summary():
     result = {
         "today":     {**_query(f"date = '{today.isoformat()}'"),     "label": f"{today.month}月{today.day}日"},
         "yesterday":  _query(f"date = '{yesterday.isoformat()}'"),
-        "week":      {**_query(f"date >= '{monday.isoformat()}'"),   "label": f"{today.month}月第{week_num}周"},
+        "week":      {**_query(_range(monday, sunday)),   "label": f"{today.month}月第{week_num}周"},
         "last_week":  _query(_range(last_week_start, last_week_end)),
         "month":     {**_query(f"date >= '{month_start.isoformat()}'"), "label": f"{today.year}年{today.month}月"},
         "last_month": _query(_range(last_month_start, last_month_end)),

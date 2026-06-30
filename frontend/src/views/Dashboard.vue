@@ -96,33 +96,16 @@
               支 <b class="expense">¥{{ fmt(modalTotal.expense) }}</b>
               净 <b :class="modalTotal.net >= 0 ? 'green' : 'red'">¥{{ fmt(modalTotal.net) }}</b>
             </div>
-            
-            <div v-for="p in modalProjects" :key="p.id" class="modal-proj">
+
+            <div v-for="(p, idx) in modalProjects" :key="p.id" class="modal-proj">
               <div class="mp-main">
-                <span class="mp-code">{{ p.code }}</span>
+                <span class="mp-num">{{ idx + 1 }}</span>
                 <span class="mp-name">{{ p.name }}</span>
-                <div class="mp-stats">
-                  <span class="mps income">收 ¥{{ fmt(p.income) }}</span>
-                  <span class="mps expense">支 ¥{{ fmt(p.expense) }}</span>
-                  <span class="mps" :class="p.net >= 0 ? 'green' : 'red'">净 ¥{{ fmt(p.net) }}</span>
-                  <span v-if="p.budget > 0" class="mps budget">
-                    {{ p.budget_usage }}%
-                    <span class="mp-bar"><span class="mp-bar-fill" :style="{ width: Math.min(p.budget_usage, 100) + '%' }" :class="p.budget_usage >= 95 ? 'danger' : p.budget_usage >= 80 ? 'warn' : ''"></span></span>
-                  </span>
-                </div>
+                <span class="mp-total" :class="p.net >= 0 ? 'green' : 'red'">合计 ¥{{ fmt(p.net) }}</span>
               </div>
               <div v-for="sub in p.sub_projects" :key="sub.id" class="mp-sub">
-                <span class="mp-sub-icon">└</span>
                 <span class="mp-sub-name">{{ sub.name }}</span>
-                <div class="mp-stats">
-                  <span class="mps income">收 ¥{{ fmt(sub.income) }}</span>
-                  <span class="mps expense">支 ¥{{ fmt(sub.expense) }}</span>
-                  <span class="mps" :class="sub.net >= 0 ? 'green' : 'red'">净 ¥{{ fmt(sub.net) }}</span>
-                  <span v-if="sub.budget > 0" class="mps budget">
-                    {{ sub.budget_usage }}%
-                    <span class="mp-bar"><span class="mp-bar-fill" :style="{ width: Math.min(sub.budget_usage, 100) + '%' }" :class="sub.budget_usage >= 95 ? 'danger' : sub.budget_usage >= 80 ? 'warn' : ''"></span></span>
-                  </span>
-                </div>
+                <span class="mp-sub-total-val" :class="sub.net >= 0 ? 'green' : 'red'">合计 ¥{{ fmt(sub.net) }}</span>
               </div>
             </div>
           </template>
@@ -181,7 +164,18 @@ const modalTotal = computed(() => {
   return { income, expense, net }
 })
 
+const mainTotal = computed(() => {
+  let income = 0, expense = 0, net = 0
+  modalProjects.value.forEach(p => {
+    income += p.income
+    expense += p.expense
+    net += p.net
+  })
+  return { income, expense, net }
+})
+
 function fmt(v) { return Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }
+function subSum(p) { return (p.sub_projects || []).reduce((s, sp) => s + (sp.net || 0), 0) }
 
 // 走势图
 const projects = ref([])
@@ -505,11 +499,23 @@ onMounted(async () => {
 .modal-summary .expense { color: #ee0a24; }
 .modal-summary .green { color: #07c160; }
 .modal-summary .red { color: #ee0a24; }
+.modal-summary.main-only {
+  background: #fffbe6; border: 1px solid #ffe58f; font-size: 12px; padding: 8px 12px;
+}
+.ms-note {
+  margin-left: 6px; font-size: 10px; color: #b0a060; font-weight: 400;
+}
 
 .modal-proj { margin-bottom: 10px; border: 1px solid #e8ecf1; border-radius: 10px; overflow: hidden; }
 .mp-main { padding: 10px 12px; background: #fafbfc; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.mp-code { background: #e8ecf1; color: #0a1628; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: 11px; flex-shrink: 0; }
-.mp-name { font-size: 14px; font-weight: 600; color: #0a1628; }
+.mp-num { background: #e8ecf1; color: #4a5a7a; font-weight: 700; min-width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+.mp-name { font-size: 14px; font-weight: 600; color: #0a1628; flex: 1; }
+.mp-total { font-size: 15px; font-weight: 700; flex-shrink: 0; }
+.mp-total.green { color: #07c160; }
+.mp-total.red { color: #ee0a24; }
+.mp-sub-total-val { font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.mp-sub-total-val.green { color: #07c160; }
+.mp-sub-total-val.red { color: #ee0a24; }
 .mp-stats { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
 .mps { font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 500; color: #334155; }
 .mps.income { color: #07c160; }
@@ -522,7 +528,7 @@ onMounted(async () => {
 .mp-bar-fill.warn { background: #ff976a; }
 .mp-bar-fill.danger { background: #ee0a24; }
 
-.mp-sub { padding: 8px 12px 8px 24px; border-top: 1px solid #f0f2f5; display: flex; align-items: center; gap: 4px; background: #fff; }
+.mp-sub { padding: 6px 12px 6px 36px; border-top: 1px solid #f0f2f5; display: flex; align-items: center; justify-content: space-between; background: #fff; }
 .mp-sub-icon { color: #b0bec5; font-size: 12px; }
 .mp-sub-name { font-size: 13px; color: #64748b; }
 .mp-sub .mp-stats { margin-left: auto; }

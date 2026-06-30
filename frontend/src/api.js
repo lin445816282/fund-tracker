@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: '/fund/api',
+  baseURL: '/api',
   timeout: 10000,
 })
 

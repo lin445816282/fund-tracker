@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/fund/',
   server: {
     proxy: {
-      '/api': 'http://127.0.0.1:8005'
+      '/api': 'http://127.0.0.1:8006'
     }
   },
   build: {
