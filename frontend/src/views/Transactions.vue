@@ -99,7 +99,7 @@
       />
     </div>
 
-    <!-- 录入/编辑弹窗 — 居中弹框 -->
+    <!-- 录入/编辑弹窗 -->
     <van-popup v-model:show="showForm" position="center" round :style="{ width: '88%', padding: '20px 16px' }">
       <div class="form-wrap">
         <h3 class="form-title">{{ isEdit ? '编辑流水' : '录入流水' }}</h3>
@@ -109,7 +109,11 @@
           type="number"
           label="金额"
           placeholder="收入为正，支出为负"
-        />
+        >
+          <template #extra>
+            <span class="calc-trigger" @click.stop="openCalc">🧮</span>
+          </template>
+        </van-field>
         <van-field
           v-model="form.project_name"
           readonly
@@ -134,11 +138,44 @@
         @cancel="showProjectPicker = false"
       />
     </van-popup>
+
+    <!-- 计算器浮框 -->
+    <div v-if="showCalc" class="calc-float" ref="calcRef" :style="calcStyle">
+      <div class="calc-dragbar" ref="calcDragbar">
+        <span class="calc-title">🧮 计算器</span>
+        <span class="calc-close" @click="showCalc = false">✕</span>
+      </div>
+      <div class="calc-display">
+        <div class="calc-expr">{{ calcExpr || '0' }}</div>
+        <div class="calc-result">= {{ fmt(calcResult) }}</div>
+      </div>
+      <div class="calc-keys">
+        <button class="calc-key fn" @click="calcClear">C</button>
+        <button class="calc-key fn" @click="calcBackspace">⌫</button>
+        <button class="calc-key fn" @click="calcToggleSign">±</button>
+        <button class="calc-key op" @click="calcOp('/')">÷</button>
+        <button class="calc-key num" @click="calcDigit('7')">7</button>
+        <button class="calc-key num" @click="calcDigit('8')">8</button>
+        <button class="calc-key num" @click="calcDigit('9')">9</button>
+        <button class="calc-key op" @click="calcOp('*')">×</button>
+        <button class="calc-key num" @click="calcDigit('4')">4</button>
+        <button class="calc-key num" @click="calcDigit('5')">5</button>
+        <button class="calc-key num" @click="calcDigit('6')">6</button>
+        <button class="calc-key op" @click="calcOp('-')">−</button>
+        <button class="calc-key num" @click="calcDigit('1')">1</button>
+        <button class="calc-key num" @click="calcDigit('2')">2</button>
+        <button class="calc-key num" @click="calcDigit('3')">3</button>
+        <button class="calc-key op" @click="calcOp('+')">+</button>
+        <button class="calc-key num zero" @click="calcDigit('0')">0</button>
+        <button class="calc-key num" @click="calcDigit('.')">.</button>
+        <button class="calc-key confirm" @click="calcConfirm">✓</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { showConfirmDialog, showToast } from 'vant'
 import api from '../api.js'
@@ -163,13 +200,12 @@ const filters = reactive({
 })
 const showProjectFilter = ref(false)
 
-// 项目列: 始终包含"全部"选项，子项目缩进显示
+// 项目列
 const projectColumns = computed(() => {
   const cols = [{ text: '全部项目', value: null }]
   for (const p of projects.value) {
-    if (p.category === 'sub') continue // 子项目稍后追加到父项目下
+    if (p.category === 'sub') continue
     cols.push({ text: p.name, value: p.id })
-    // 添加该主项目的子项目
     const subs = projects.value.filter(s => s.parent_id === p.id && s.category === 'sub')
     for (const s of subs) {
       cols.push({ text: `  └ ${s.name}`, value: s.id })
@@ -178,7 +214,7 @@ const projectColumns = computed(() => {
   return cols
 })
 
-// 表单项目列: 不含"全部"，子项目缩进
+// 表单项目列
 const formProjectColumns = computed(() => {
   const cols = []
   for (const p of projects.value) {
@@ -205,6 +241,159 @@ const form = reactive({
   remark: '',
 })
 
+// ── 计算器 ──
+const showCalc = ref(false)
+const calcRef = ref(null)
+const calcDragbar = ref(null)
+const calcPos = reactive({ left: 0, top: 0 })
+const calcStyle = computed(() => ({
+  left: calcPos.left + 'px',
+  top: calcPos.top + 'px',
+}))
+
+function initCalcPosition() {
+  const w = window.innerWidth
+  const h = window.innerHeight
+  calcPos.left = Math.max(8, (w - 320) / 2)
+  calcPos.top = Math.max(80, (h - 440) / 2)
+}
+
+// 拖动逻辑
+function setupCalcDrag() {
+  if (!calcRef.value || !calcDragbar.value) return
+  const el = calcRef.value
+  const bar = calcDragbar.value
+  let dragging = false, ox = 0, oy = 0
+  bar.style.cursor = 'grab'
+  bar.addEventListener('pointerdown', (e) => {
+    dragging = true
+    ox = e.clientX - calcPos.left
+    oy = e.clientY - calcPos.top
+    bar.setPointerCapture(e.pointerId)
+    bar.style.cursor = 'grabbing'
+    el.style.transition = 'none'
+  })
+  bar.addEventListener('pointermove', (e) => {
+    if (!dragging) return
+    calcPos.left = e.clientX - ox
+    calcPos.top = e.clientY - oy
+  })
+  bar.addEventListener('pointerup', () => {
+    dragging = false
+    bar.style.cursor = 'grab'
+    el.style.transition = 'box-shadow .2s'
+  })
+}
+
+watch(showCalc, (v) => {
+  if (v) {
+    initCalcPosition()
+    nextTick(setupCalcDrag)
+  }
+})
+const calcExpr = ref('')       // 显示的表达式
+const calcCurrent = ref('0')   // 当前输入的数字
+const calcOpPending = ref('')  // 待执行的运算符
+const calcAccumulator = ref(0) // 累加结果
+const calcLastWasOp = ref(false)
+
+const calcResult = computed(() => {
+  if (!calcExpr.value) return 0
+  // 安全求值：用 Function 计算当前表达式
+  try {
+    const expr = calcExpr.value.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
+    const val = new Function(`return (${expr})`)()
+    return isNaN(val) || !isFinite(val) ? 0 : val
+  } catch {
+    return 0
+  }
+})
+
+function openCalc() {
+  // 如果金额字段已有值，带入计算器
+  if (form.amount !== '' && form.amount !== null) {
+    calcExpr.value = String(form.amount)
+    calcCurrent.value = String(form.amount)
+    calcAccumulator.value = Number(form.amount)
+    calcOpPending.value = ''
+    calcLastWasOp.value = false
+  } else {
+    calcClear()
+  }
+  showCalc.value = true
+}
+
+function calcDigit(d) {
+  if (calcLastWasOp.value) {
+    // 运算符后开始新数字
+    if (d === '.') {
+      calcCurrent.value = '0.'
+    } else {
+      calcCurrent.value = d
+    }
+    calcExpr.value += d
+    calcLastWasOp.value = false
+  } else {
+    // 继续输入当前数字
+    if (d === '.' && calcCurrent.value.includes('.')) return
+    if (calcCurrent.value === '0' && d !== '.') {
+      calcCurrent.value = d
+      // 替换表达式中最后一个 0
+      calcExpr.value = calcExpr.value.slice(0, -1) + d
+    } else {
+      calcCurrent.value += d
+      calcExpr.value += d
+    }
+  }
+}
+
+function calcOp(op) {
+  if (calcLastWasOp.value) {
+    // 替换上一个运算符
+    calcExpr.value = calcExpr.value.slice(0, -1) + op
+  } else {
+    calcExpr.value += op
+    calcLastWasOp.value = true
+  }
+  calcOpPending.value = op
+}
+
+function calcClear() {
+  calcExpr.value = ''
+  calcCurrent.value = '0'
+  calcOpPending.value = ''
+  calcAccumulator.value = 0
+  calcLastWasOp.value = false
+}
+
+function calcBackspace() {
+  if (calcExpr.value.length === 0) return
+  const last = calcExpr.value.slice(-1)
+  calcExpr.value = calcExpr.value.slice(0, -1)
+  if ('+−×÷'.includes(last)) {
+    calcLastWasOp.value = false
+    calcCurrent.value = calcExpr.value.split(/[+−×÷]/).pop() || '0'
+  } else {
+    calcCurrent.value = calcCurrent.value.slice(0, -1) || '0'
+    calcLastWasOp.value = false
+  }
+}
+
+function calcToggleSign() {
+  // 翻转计算结果的正负
+  const result = calcResult.value
+  if (result === 0) return
+  const negated = -result
+  calcExpr.value = String(negated)
+  calcCurrent.value = String(negated)
+  calcLastWasOp.value = false
+}
+
+function calcConfirm() {
+  form.amount = String(calcResult.value)
+  showCalc.value = false
+}
+
 // ── 工具函数 ──
 function fmt(v) {
   return Number(v || 0).toLocaleString('zh-CN', {
@@ -217,7 +406,6 @@ function fmt(v) {
 async function loadProjects() {
   try {
     const res = await api.get('/projects')
-    // api.js 默认返回 axios response，data 在 res.data
     projects.value = Array.isArray(res.data) ? res.data : (res.data.data || [])
   } catch (e) {
     console.error('加载项目失败:', e)
@@ -241,17 +429,14 @@ async function loadTx() {
     items.value = data.items || data.data || []
     total.value = data.total || 0
 
-    // 峰值日
     peaks.positive = data.peak_positive || null
     peaks.negative = data.peak_negative || null
 
-    // 优先使用后端返回的统计
     if (data.total_income !== undefined) {
       stats.total_income = data.total_income
       stats.total_expense = data.total_expense
       stats.net = data.net
     } else {
-      // fallback: 客户端计算
       stats.total_income = items.value
         .filter(t => Number(t.amount) > 0)
         .reduce((s, t) => s + Number(t.amount), 0)
@@ -370,18 +555,16 @@ async function delTx(tx) {
     })
     await api.delete(`/transactions/${tx.id}`)
     showToast('已删除')
-    // 如果删除后当前页没数据了且不是第1页，回退一页
     if (items.value.length === 1 && page.value > 1) {
       page.value -= 1
     }
     loadTx()
   } catch (e) {
-    // 用户取消删除或其他错误
     if (e !== 'cancel') console.error('删除失败:', e)
   }
 }
 
-// ── 监听路由 query pid，自动预填项目筛选 ──
+// ── 监听路由 query pid ──
 watch(
   () => route.query.pid,
   (pid) => {
@@ -398,7 +581,6 @@ watch(
 // ── 初始化 ──
 onMounted(async () => {
   await loadProjects()
-  // 如果从 Dashboard 带 pid 进来
   if (route.query.pid) {
     const pid = Number(route.query.pid)
     const p = projects.value.find(p => p.id === pid)
@@ -631,5 +813,119 @@ onMounted(async () => {
   flex-direction: column;
   gap: 10px;
   margin-top: 20px;
+}
+
+/* ── 计算器按钮 ── */
+.calc-trigger {
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #f0f2f5;
+  user-select: none;
+}
+.calc-trigger:active {
+  background: #e0e6ed;
+}
+
+/* ── 计算器浮框 ── */
+.calc-float {
+  position: fixed;
+  z-index: 3000;
+  width: 320px;
+  max-width: calc(100vw - 16px);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  padding: 0 14px 14px;
+  transition: box-shadow 0.2s;
+  touch-action: none;
+}
+.calc-dragbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 2px 10px;
+  cursor: grab;
+  user-select: none;
+}
+.calc-dragbar:active {
+  cursor: grabbing;
+}
+.calc-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0a1628;
+}
+.calc-close {
+  font-size: 18px;
+  color: #bbb;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.calc-display {
+  background: #f7f8fa;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: right;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.calc-expr {
+  font-size: 18px;
+  color: #0a1628;
+  word-break: break-all;
+  line-height: 1.4;
+  min-height: 25px;
+}
+.calc-result {
+  font-size: 28px;
+  font-weight: 800;
+  color: #4da6ff;
+  margin-top: 8px;
+}
+.calc-keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.calc-key {
+  height: 56px;
+  border: none;
+  border-radius: 28px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.1s, opacity 0.1s;
+}
+.calc-key:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+.calc-key.num {
+  background: #fff;
+  color: #0a1628;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.calc-key.op {
+  background: #e8f0fe;
+  color: #4da6ff;
+}
+.calc-key.fn {
+  background: #f0f2f5;
+  color: #8899bb;
+  font-size: 16px;
+}
+.calc-key.confirm {
+  background: linear-gradient(135deg, #4da6ff, #0a1628);
+  color: #fff;
+  font-size: 22px;
+}
+.calc-key.zero {
+  grid-column: span 1;
 }
 </style>

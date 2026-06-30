@@ -30,7 +30,7 @@
         </van-button>
       </van-form>
       <div class="login-bottom">
-        <span>游客可浏览全部数据，无需登录</span>
+        <span>🔒 登录后可查看全部数据与操作</span>
       </div>
     </div>
   </div>
@@ -75,8 +75,8 @@ async function onSubmit() {
   try {
     const endpoint = mode.value === 0 ? '/auth/login' : '/auth/register'
     const res = await api.post(endpoint, { phone: trimmedPhone, password: trimmedPwd })
-    localStorage.setItem('token', res.token)
-    localStorage.setItem('phone', res.phone)
+    localStorage.setItem('token', res.data.token)
+    localStorage.setItem('phone', res.data.phone)
     showToast(mode.value === 0 ? '登录成功' : '注册成功')
     const redirect = route.query.redirect
     setTimeout(() => {

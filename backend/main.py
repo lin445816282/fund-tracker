@@ -3,7 +3,7 @@
 """
 import os, sqlite3, json, calendar
 from datetime import date, datetime, timedelta
-from fastapi import FastAPI, HTTPException, Query, Header
+from fastapi import FastAPI, HTTPException, Query, Header, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -151,6 +151,10 @@ def verify_token(authorization: str) -> dict:
 
 def _uid(authorization: str) -> int:
     return verify_token(authorization)["user_id"]
+
+def get_current_user(authorization: str = Header(...)) -> dict:
+    """FastAPI 依赖注入：验证token，返回用户信息"""
+    return verify_token(authorization)
 
 # ═══════════ 模型 ═══════════
 class TransactionIn(BaseModel):
@@ -413,7 +417,7 @@ def check_expansion_drawdown(db, pid):
 
 # ═══════════ 项目 API ═══════════
 @app.get("/api/projects")
-def list_projects():
+def list_projects(user: dict = Depends(get_current_user)):
     db = get_db()
     rows = db.execute("SELECT * FROM projects ORDER BY category, id").fetchall()
     result = []
@@ -441,7 +445,7 @@ def list_projects():
     return result
 
 @app.post("/api/projects")
-def create_project(p: ProjectIn):
+def create_project(p: ProjectIn, user: dict = Depends(get_current_user)):
     db = get_db()
     db.execute(
         "INSERT INTO projects (name, code, parent_id, budget, stop_loss, risk_ratio, category) VALUES (?,?,?,?,?,?,?)",
@@ -456,7 +460,7 @@ def create_project(p: ProjectIn):
     return {"id": pid}
 
 @app.put("/api/projects/{pid}")
-def update_project(pid: int, p: ProjectUpdate):
+def update_project(pid: int, p: ProjectUpdate, user: dict = Depends(get_current_user)):
     db = get_db()
     existing = db.execute("SELECT * FROM projects WHERE id=?", (pid,)).fetchone()
     if not existing:
@@ -478,7 +482,7 @@ def update_project(pid: int, p: ProjectUpdate):
     return {"ok": True}
 
 @app.delete("/api/projects/{pid}")
-def delete_project(pid: int):
+def delete_project(pid: int, user: dict = Depends(get_current_user)):
     db = get_db()
     existing = db.execute("SELECT * FROM projects WHERE id=?", (pid,)).fetchone()
     parent_id = existing["parent_id"] if existing else None
@@ -492,7 +496,7 @@ def delete_project(pid: int):
 
 # ═══════════ 流水 API ═══════════
 @app.get("/api/transactions")
-def list_transactions(
+def list_transactions(user: dict = Depends(get_current_user), 
     project_id: Optional[int] = None,
     start_date: str = "",
     end_date: str = "",
@@ -500,7 +504,7 @@ def list_transactions(
     page_size: int = 30,
 ):
     db = get_db()
-    sql = "SELECT t.*, p.name as project_name, p.code as project_code FROM transactions t LEFT JOIN projects p ON t.project_id=p.id WHERE 1=1"
+    sql = "SELECT t.*, p.name as project_name, p.code as project_code, p.category, pp.name as parent_name FROM transactions t LEFT JOIN projects p ON t.project_id=p.id LEFT JOIN projects pp ON p.parent_id=pp.id WHERE 1=1"
     params = []
     if project_id:
         sql += " AND t.project_id=?"
@@ -523,6 +527,9 @@ def list_transactions(
     for r in rows[start:start + page_size]:
         d = dict(r)
         d["day_seq"] = calc_day_seq(r["date"])
+        # 子项目显示 "父项目 > 子项目"
+        if r["category"] == "sub" and r["parent_name"]:
+            d["project_name"] = f"{r['parent_name']} > {r['project_name']}"
         result.append(d)
 
     # 峰值日：正负最多的一天
@@ -540,21 +547,28 @@ def list_transactions(
     wc = (" AND " + " AND ".join(where_clauses)) if where_clauses else ""
     
     peak_positive = db.execute(
-        "SELECT t.date, t.amount, p.name as project_name FROM transactions t LEFT JOIN projects p ON t.project_id=p.id WHERE 1=1 AND t.amount > 0" + wc + " ORDER BY t.amount DESC LIMIT 1",
+        "SELECT t.date, t.amount, p.name as project_name, p.category, pp.name as parent_name FROM transactions t LEFT JOIN projects p ON t.project_id=p.id LEFT JOIN projects pp ON p.parent_id=pp.id WHERE 1=1 AND t.amount > 0" + wc + " ORDER BY t.amount DESC LIMIT 1",
         peak_params).fetchone()
     peak_negative = db.execute(
-        "SELECT t.date, t.amount, p.name as project_name FROM transactions t LEFT JOIN projects p ON t.project_id=p.id WHERE 1=1 AND t.amount < 0" + wc + " ORDER BY t.amount ASC LIMIT 1",
+        "SELECT t.date, t.amount, p.name as project_name, p.category, pp.name as parent_name FROM transactions t LEFT JOIN projects p ON t.project_id=p.id LEFT JOIN projects pp ON p.parent_id=pp.id WHERE 1=1 AND t.amount < 0" + wc + " ORDER BY t.amount ASC LIMIT 1",
         peak_params).fetchone()
+
+    def _peak_name(row):
+        if row and row["category"] == "sub" and row["parent_name"]:
+            r = dict(row)
+            r["project_name"] = f"{row['parent_name']} > {row['project_name']}"
+            return r
+        return dict(row) if row else None
     
     db.close()
     return {
         "items": result, "total": total, "page": page, "page_size": page_size, "total_pages": total_pages,
-        "peak_positive": dict(peak_positive) if peak_positive else None,
-        "peak_negative": dict(peak_negative) if peak_negative else None,
+        "peak_positive": _peak_name(peak_positive),
+        "peak_negative": _peak_name(peak_negative),
     }
 
 @app.post("/api/transactions")
-def create_transaction(t: TransactionIn):
+def create_transaction(t: TransactionIn, user: dict = Depends(get_current_user)):
     db = get_db()
     day_seq = calc_day_seq(t.date)
     db.execute(
@@ -576,7 +590,7 @@ def create_transaction(t: TransactionIn):
     return {"id": tid}
 
 @app.put("/api/transactions/{tid}")
-def update_transaction(tid: int, t: TransactionIn):
+def update_transaction(tid: int, t: TransactionIn, user: dict = Depends(get_current_user)):
     db = get_db()
     day_seq = calc_day_seq(t.date)
     db.execute(
@@ -596,7 +610,7 @@ def update_transaction(tid: int, t: TransactionIn):
     return {"ok": True}
 
 @app.delete("/api/transactions/{tid}")
-def delete_transaction(tid: int):
+def delete_transaction(tid: int, user: dict = Depends(get_current_user)):
     db = get_db()
     row = db.execute("SELECT project_id FROM transactions WHERE id=?", (tid,)).fetchone()
     db.execute("DELETE FROM transactions WHERE id=?", (tid,))
@@ -614,7 +628,7 @@ def delete_transaction(tid: int):
 
 # ═══════════ 预警 API ═══════════
 @app.get("/api/alerts")
-def list_alerts(status: str = "active"):
+def list_alerts(status: str = "active", user: dict = Depends(get_current_user)):
     db = get_db()
     sql = "SELECT a.*, p.name as project_name FROM alerts a LEFT JOIN projects p ON a.project_id=p.id"
     if status and status != "all":
@@ -626,7 +640,7 @@ def list_alerts(status: str = "active"):
     return [dict(r) for r in rows]
 
 @app.put("/api/alerts/{aid}")
-def resolve_alert(aid: int, body: AlertResolve):
+def resolve_alert(aid: int, body: AlertResolve, user: dict = Depends(get_current_user)):
     db = get_db()
     db.execute(
         "UPDATE alerts SET status=?, resolved_at=datetime('now','localtime'), resolve_note=? WHERE id=?",
@@ -638,7 +652,7 @@ def resolve_alert(aid: int, body: AlertResolve):
 
 # ═══════════ 拓展 API ═══════════
 @app.get("/api/expansion/{project_id}")
-def get_expansion(project_id: int):
+def get_expansion(project_id: int, user: dict = Depends(get_current_user)):
     db = get_db()
     levels = db.execute(
         "SELECT * FROM expansion_levels WHERE project_id=? ORDER BY level",
@@ -682,7 +696,7 @@ def get_expansion(project_id: int):
     return {"levels": result, "net_amount": round(net, 2), "budget_usage": round(budget_usage, 1)}
 
 @app.post("/api/expansion")
-def create_expansion(e: ExpansionIn):
+def create_expansion(e: ExpansionIn, user: dict = Depends(get_current_user)):
     db = get_db()
     db.execute(
         "INSERT INTO expansion_levels (project_id, level, name, conditions) VALUES (?,?,?,?)",
@@ -693,7 +707,7 @@ def create_expansion(e: ExpansionIn):
     return {"ok": True}
 
 @app.put("/api/expansion/{eid}")
-def update_expansion(eid: int, e: ExpansionIn):
+def update_expansion(eid: int, e: ExpansionIn, user: dict = Depends(get_current_user)):
     db = get_db()
     db.execute(
         "UPDATE expansion_levels SET level=?, name=?, conditions=? WHERE id=?",
@@ -704,7 +718,7 @@ def update_expansion(eid: int, e: ExpansionIn):
     return {"ok": True}
 
 @app.post("/api/expansion/{project_id}/upgrade")
-def upgrade_expansion(project_id: int, level: int = Query(...)):
+def upgrade_expansion(project_id: int, level: int = Query(...), user: dict = Depends(get_current_user)):
     db = get_db()
     db.execute(
         "INSERT INTO expansion_records (project_id, level) VALUES (?,?)",
@@ -715,7 +729,7 @@ def upgrade_expansion(project_id: int, level: int = Query(...)):
     return {"ok": True}
 
 @app.delete("/api/expansion/{eid}")
-def delete_expansion(eid: int):
+def delete_expansion(eid: int, user: dict = Depends(get_current_user)):
     db = get_db()
     db.execute("DELETE FROM expansion_levels WHERE id=?", (eid,))
     db.commit()
@@ -814,7 +828,7 @@ def _build_project_tree(db, date_filter: str) -> list:
     return result
 
 @app.get("/api/stats")
-def get_stats(period: str = "all"):
+def get_stats(period: str = "all", user: dict = Depends(get_current_user)):
     db = get_db()
     date_filter = _get_date_filter(period)
     fc = f" AND {date_filter}" if date_filter else ""
@@ -832,7 +846,7 @@ def get_stats(period: str = "all"):
     }
 
 @app.get("/api/stats/summary")
-def get_summary():
+def get_summary(user: dict = Depends(get_current_user)):
     """一次性返回四个周期+对比数据（用于总览页豆腐块）"""
     db = get_db()
     today = date.today()
@@ -892,7 +906,7 @@ def get_summary():
     return result
 
 @app.get("/api/stats/dashboard")
-def dashboard(period: str = "all"):
+def dashboard(period: str = "all", user: dict = Depends(get_current_user)):
     db = get_db()
     today = date.today()
     
@@ -983,7 +997,7 @@ def dashboard(period: str = "all"):
     }
 
 @app.get("/api/dashboard/projects")
-def dashboard_projects():
+def dashboard_projects(user: dict = Depends(get_current_user)):
     """返回可选项目列表（用于走势图选择）"""
     db = get_db()
     rows = db.execute("SELECT id, name, code, parent_id FROM projects WHERE category!='other' ORDER BY parent_id IS NULL DESC, parent_id, id").fetchall()
@@ -991,7 +1005,7 @@ def dashboard_projects():
     return {"projects": [{"id": r["id"], "name": r["name"], "code": r["code"], "parent_id": r["parent_id"]} for r in rows]}
 
 @app.get("/api/dashboard/trend")
-def dashboard_trend(project_ids: str = "", period: str = "day"):
+def dashboard_trend(project_ids: str = "", period: str = "day", user: dict = Depends(get_current_user)):
     """走势数据：每个项目独立一条线，父项目=子项目汇总
     period: year|month|week|day
     返回 {dates, labels, series: [{project_id, name, color, data}]}
@@ -1105,7 +1119,7 @@ def dashboard_trend(project_ids: str = "", period: str = "day"):
     return {"dates": sorted_keys, "labels": labels, "series": series}
 
 @app.get("/api/export")
-def export_excel():
+def export_excel(user: dict = Depends(get_current_user)):
     import csv, io
     db = get_db()
     rows = db.execute(

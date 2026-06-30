@@ -13,12 +13,12 @@
     </div>
     <van-tabbar v-model="active" route>
       <van-tabbar-item icon="chart-trending-o" to="/">总览</van-tabbar-item>
-      <van-tabbar-item icon="bill-o" to="/transactions" :badge="isLoggedIn ? '' : '🔒'">流水</van-tabbar-item>
+      <van-tabbar-item icon="bill-o" to="/transactions">流水</van-tabbar-item>
       <van-tabbar-item icon="setting-o" to="/projects">项目</van-tabbar-item>
       <van-tabbar-item icon="bar-chart-o" to="/reports">报表</van-tabbar-item>
       <van-tabbar-item icon="warning-o" to="/alerts">预警</van-tabbar-item>
     </van-tabbar>
-    <div class="app-version">v1.0.2</div>
+    <div class="app-version">v1.0.3</div>
 
     <!-- 退出确认 -->
     <van-dialog v-model:show="showLogout" title="退出登录" message="确定要退出吗？"
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -38,24 +38,38 @@ const isLoggedIn = ref(false)
 const phone = ref('')
 const showLogout = ref(false)
 
-onMounted(() => {
-  const tabs = ['/', '/transactions', '/projects', '/reports', '/alerts']
-  const idx = tabs.indexOf(route.path)
-  if (idx >= 0) active.value = idx
-  checkLogin()
-  setInterval(() => {
-    now.value = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  }, 1000)
-})
+const tabs = ['/', '/transactions', '/projects', '/reports', '/alerts']
 
-function checkLogin() {
+function syncLogin() {
   const token = localStorage.getItem('token')
   const storedPhone = localStorage.getItem('phone')
   if (token && storedPhone) {
     isLoggedIn.value = true
     phone.value = storedPhone
+  } else {
+    isLoggedIn.value = false
+    phone.value = ''
   }
 }
+
+function syncTab() {
+  const idx = tabs.indexOf(route.path)
+  if (idx >= 0) active.value = idx
+}
+
+onMounted(() => {
+  syncLogin()
+  syncTab()
+  setInterval(() => {
+    now.value = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  }, 1000)
+})
+
+// 监听路由变化（登录后跳转回来时更新状态）
+watch(() => route.path, () => {
+  syncLogin()
+  syncTab()
+})
 
 function goLogin() {
   router.push('/login')
@@ -67,7 +81,7 @@ function doLogout() {
   isLoggedIn.value = false
   phone.value = ''
   showLogout.value = false
-  router.push('/')
+  router.push('/login')
 }
 </script>
 

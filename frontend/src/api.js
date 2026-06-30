@@ -1,7 +1,10 @@
 import axios from 'axios'
 
+// Dev: Vite proxies /api → 8006. Prod: served at /fund/, API must route through /fund/api proxy
+const baseURL = window.location.pathname.startsWith('/fund/') ? '/fund/api' : '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   timeout: 10000,
 })
 
