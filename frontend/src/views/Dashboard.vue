@@ -98,7 +98,8 @@
             </div>
 
             <div v-for="(p, idx) in modalProjects" :key="p.id" class="modal-proj">
-              <div class="mp-main">
+              <div class="mp-main" @click="toggleExpand(p.id)">
+                <span class="mp-expand">{{ expandedIds.has(p.id) ? '▼' : '▶' }}</span>
                 <span class="mp-num">{{ idx + 1 }}</span>
                 <span class="mp-name">{{ p.name }}</span>
                 <div class="mp-stats">
@@ -107,13 +108,28 @@
                   <span v-if="p.balance_after != null" class="mps">余额 <b :class="p.balance_after >= 0 ? 'green' : 'red'">¥{{ fmt(p.balance_after) }}</b></span>
                 </div>
               </div>
-              <div v-for="sub in p.sub_projects" :key="sub.id" class="mp-sub">
+              <div v-if="expandedIds.has(p.id) && p.daily && p.daily.length" class="mp-daily">
+                <div v-for="d in p.daily" :key="d.date" class="mp-daily-row">
+                  <span class="mp-daily-date">{{ formatDate(d.date) }}</span>
+                  <span :class="['mp-daily-amt', d.amount >= 0 ? 'green' : 'red']">{{ d.amount >= 0 ? '+' : '' }}¥{{ fmt(d.amount) }}</span>
+                </div>
+              </div>
+              <div v-if="expandedIds.has(p.id) && (!p.daily || !p.daily.length)" class="mp-daily-empty">主项目无直接交易</div>
+              <div v-for="sub in p.sub_projects" :key="sub.id" class="mp-sub" @click="toggleExpand(sub.id)">
+                <span class="mp-expand">{{ expandedIds.has(sub.id) ? '▼' : '▶' }}</span>
                 <span class="mp-sub-name">{{ sub.name }}</span>
                 <div class="mp-stats">
                   <span v-if="sub.balance_before != null" class="mps">上期 ¥{{ fmt(sub.balance_before) }}</span>
                   <span class="mps">净 <b :class="sub.net >= 0 ? 'green' : 'red'">¥{{ fmt(sub.net) }}</b></span>
                   <span v-if="sub.balance_after != null" class="mps">余额 <b :class="sub.balance_after >= 0 ? 'green' : 'red'">¥{{ fmt(sub.balance_after) }}</b></span>
                 </div>
+                <div v-if="expandedIds.has(sub.id) && sub.daily && sub.daily.length" class="mp-daily">
+                  <div v-for="d in sub.daily" :key="d.date" class="mp-daily-row">
+                    <span class="mp-daily-date">{{ formatDate(d.date) }}</span>
+                    <span :class="['mp-daily-amt', d.amount >= 0 ? 'green' : 'red']">{{ d.amount >= 0 ? '+' : '' }}¥{{ fmt(d.amount) }}</span>
+                  </div>
+                </div>
+                <div v-if="expandedIds.has(sub.id) && (!sub.daily || !sub.daily.length)" class="mp-daily-empty">该时段无交易</div>
               </div>
             </div>
           </template>
@@ -146,6 +162,9 @@ const showModal = ref(false)
 const activeModal = ref('')
 const modalLoading = ref(false)
 const modalProjects = ref([])
+const expandedIds = ref(new Set())
+function toggleExpand(id) { const s = new Set(expandedIds.value); s.has(id) ? s.delete(id) : s.add(id); expandedIds.value = s }
+function formatDate(d) { const p = d.split("-"); return p[1]+"/"+p[2] }
 
 const periodNames = {
   today: '今日', yesterday: '昨日',
@@ -201,10 +220,14 @@ const periods = [
 
 function toggleProject(id) {
   const s = new Set(selectedIds.value)
+  const proj = projects.value.find(p => p.id === id)
   if (s.has(id)) {
     s.delete(id)
   } else {
     s.add(id)
+    if (proj && !proj.parent_id) {
+      projects.value.filter(p => p.parent_id === id).forEach(p => s.delete(p.id))
+    }
   }
   selectedIds.value = s
   loadTrend()
@@ -589,4 +612,15 @@ onMounted(async () => {
 .trend-canvas {
   display: block; width: 100%;
 }
+
+/* Modal daily breakdown */
+.mp-expand { font-size: 10px; color: var(--nn-lightink); margin-right: 4px; width: 12px; display: inline-block; }
+.mp-main, .mp-sub { cursor: pointer; }
+.mp-daily { background: rgba(139,90,43,0.04); border-radius: 6px; margin: 4px 0 4px 18px; padding: 4px 8px; }
+.mp-daily-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; font-size: 11px; }
+.mp-daily-date { color: var(--nn-lightink); }
+.mp-daily-amt { font-weight: 600; }
+.mp-daily-amt.green { color: #2d6a4f; }
+.mp-daily-amt.red { color: var(--nn-seal); }
+.mp-daily-empty { font-size: 11px; color: var(--nn-lightink); padding: 4px 18px; }
 </style>

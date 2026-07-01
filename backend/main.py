@@ -859,6 +859,12 @@ def _build_project_tree(db, period: str) -> list:
                 balance_before = _calc_project_balance(db, s["id"], boundary[0]) if boundary[0] else None
                 agg_balance_before += (balance_before or 0)
                 balance_after = round((balance_before or 0) + cs["net"], 2) if balance_before is not None else None
+                # 日明细
+                daily_rows = db.execute(
+                    f"SELECT date, amount FROM transactions WHERE project_id=? AND {date_filter} ORDER BY date",
+                    (s["id"],)
+                ).fetchall() if date_filter else []
+                daily = [{"date": r["date"], "amount": r["amount"]} for r in daily_rows]
                 children.append({
                     "id": s["id"], "name": s["name"], "code": s["code"],
                     "net": cs["net"], "income": cs["income"], "expense": cs["expense"],
@@ -866,11 +872,18 @@ def _build_project_tree(db, period: str) -> list:
                     "budget_usage": round(cs["expense"] / s["budget"] * 100, 1) if s["budget"] > 0 else 0,
                     "balance_before": balance_before,
                     "balance_after": balance_after,
+                    "daily": daily,
                 })
         self_stats = _calc_project_stats(db, m["id"], date_filter)
         agg["net"] += self_stats["net"]
         agg["income"] += self_stats["income"]
         agg["expense"] += self_stats["expense"]
+        # 主项目日明细
+        daily_rows_m = db.execute(
+            f"SELECT date, amount FROM transactions WHERE project_id=? AND {date_filter} ORDER BY date",
+            (m["id"],)
+        ).fetchall() if date_filter else []
+        daily_m = [{"date": r["date"], "amount": r["amount"]} for r in daily_rows_m]
         # 主项目上期余额（所有子项目余额之和）
         balance_before_main = agg_balance_before
         balance_after_main = round(balance_before_main + agg["net"], 2) if boundary[0] else None
@@ -882,6 +895,7 @@ def _build_project_tree(db, period: str) -> list:
             "stop_loss_diff": round(agg["net"] - m["stop_loss"], 2) if m["stop_loss"] else 0,
             "balance_before": balance_before_main if boundary[0] else None,
             "balance_after": balance_after_main if boundary[0] else None,
+            "daily": daily_m,
             "sub_projects": children,
         })
     return result
