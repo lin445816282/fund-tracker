@@ -124,7 +124,7 @@
         />
         <van-field v-model="form.remark" label="备注" placeholder="选填" />
         <div class="form-btns">
-          <van-button round block type="primary" @click="saveTx">保存</van-button>
+          <van-button round block type="primary" :loading="saving" loading-text="保存中..." @click="saveTx">保存</van-button>
           <van-button round block plain @click="showForm = false">取消</van-button>
         </div>
       </div>
@@ -233,6 +233,7 @@ const showForm = ref(false)
 const showProjectPicker = ref(false)
 const isEdit = ref(false)
 const editId = ref(null)
+const saving = ref(false)
 const form = reactive({
   date: '',
   amount: '',
@@ -512,6 +513,7 @@ function onFormProjectConfirm({ selectedOptions }) {
 }
 
 async function saveTx() {
+  if (saving.value) return
   if (!form.date) {
     showToast('请选择日期')
     return
@@ -525,6 +527,7 @@ async function saveTx() {
     return
   }
 
+  saving.value = true
   try {
     const payload = {
       date: form.date,
@@ -544,6 +547,8 @@ async function saveTx() {
   } catch (e) {
     console.error('保存失败:', e)
     showToast('保存失败，请重试')
+  } finally {
+    saving.value = false
   }
 }
 
@@ -813,6 +818,19 @@ onMounted(async () => {
   flex-direction: column;
   gap: 10px;
   margin-top: 20px;
+}
+.form-btns .van-button--primary {
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #4da6ff, #1a2a4a);
+  border: none;
+}
+.form-btns .van-button--primary.van-button--loading {
+  background: linear-gradient(135deg, #3a8ae5, #0a1628);
+  animation: btn-pulse 1.5s ease-in-out infinite;
+}
+@keyframes btn-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(77, 166, 255, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(77, 166, 255, 0); }
 }
 
 /* ── 计算器按钮 ── */

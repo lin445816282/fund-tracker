@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <div class="top-bar">
+    <div class="top-bar" v-if="route.path !== '/login'">
       <span class="tb-title">💰 资金跟踪</span>
       <div class="tb-right">
         <span class="user-badge" v-if="isLoggedIn" @click="showLogout = true">📱 {{ phone }}</span>
@@ -8,10 +8,8 @@
         <span class="tb-time">{{ now }}</span>
       </div>
     </div>
-    <div class="content">
-      <router-view />
-    </div>
-    <van-tabbar v-model="active" route>
+    <router-view />
+    <van-tabbar v-model="active" route v-if="isLoggedIn && route.path !== '/login'">
       <van-tabbar-item icon="chart-trending-o" to="/">总览</van-tabbar-item>
       <van-tabbar-item icon="bill-o" to="/transactions">流水</van-tabbar-item>
       <van-tabbar-item icon="setting-o" to="/projects">项目</van-tabbar-item>

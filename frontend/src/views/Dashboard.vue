@@ -53,7 +53,7 @@
     </div>
 
     <!-- 走势图 -->
-    <div class="trend-section">
+    <div class="trend-section" v-if="chartReady">
       <div class="trend-header">
         <span class="trend-title">📈 走势</span>
       </div>
@@ -78,6 +78,12 @@
       <div class="trend-canvas-wrap">
         <canvas ref="chartCanvas" class="trend-canvas"></canvas>
       </div>
+    </div>
+
+    <!-- 走势图骨架 -->
+    <div class="trend-section skeleton" v-else>
+      <div class="trend-header"><span class="trend-title">📈 走势</span></div>
+      <div class="skel-chart"></div>
     </div>
 
     <!-- 明细弹框 -->
@@ -211,6 +217,7 @@ const trendPeriod = ref('day')
 const trendData = ref({ dates: [], labels: [], series: [] })
 const trendLoading = ref(false)
 const chartCanvas = ref(null)
+const chartReady = ref(false)
 const periods = [
   { label: '日', value: 'day' },
   { label: '周', value: 'week' },
@@ -452,6 +459,7 @@ onMounted(async () => {
       selectedIds.value = all
       loadTrend()
     }
+    setTimeout(() => { chartReady.value = true }, 300)
   } catch (e) { console.error(e) }
 })
 </script>
@@ -623,4 +631,12 @@ onMounted(async () => {
 .mp-daily-amt.green { color: #2d6a4f; }
 .mp-daily-amt.red { color: var(--nn-seal); }
 .mp-daily-empty { font-size: 11px; color: var(--nn-lightink); padding: 4px 18px; }
+
+/* 走势图骨架 */
+.trend-section.skeleton { pointer-events: none; }
+.skel-chart {
+  height: 220px; background: linear-gradient(90deg, #f0f3f8 25%, #e8ecf1 50%, #f0f3f8 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 </style>

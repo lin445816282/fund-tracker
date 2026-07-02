@@ -1,7 +1,6 @@
 <template>
-  <div class="login-overlay" @click.self="goBack">
+  <div class="login-page">
     <div class="login-card">
-      <span class="login-close" @click="goBack">✕</span>
       <div class="login-brand">
         <div class="brand-icon">💰</div>
         <h2 class="brand-title">资金跟踪</h2>
@@ -95,19 +94,19 @@ async function onSubmit() {
 </script>
 
 <style scoped>
-.login-overlay {
-  position: fixed; inset: 0; z-index: 2000;
-  background: rgba(30, 20, 10, 0.45);
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0a1628 0%, #1a2a4a 100%);
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
-  animation: fadeIn .2s ease;
+  animation: fadeIn .3s ease;
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .login-card {
-  position: relative; background: var(--nn-paper); border-radius: 20px;
+  position: relative; background: #fff; border-radius: 20px;
   width: 100%; max-width: 360px; padding: 36px 24px 24px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
   animation: slideUp .3s ease;
 }
 @keyframes slideUp {
@@ -140,7 +139,7 @@ async function onSubmit() {
 }
 .field-wrap {
   display: flex; align-items: center; gap: 10px;
-  background: rgba(139, 90, 43, 0.04); border-radius: 12px;
+  background: #f5f7fa; border-radius: 12px;
   padding: 0 14px; margin-bottom: 12px;
 }
 .field-wrap:focus-within { background: #eef2ff; }
