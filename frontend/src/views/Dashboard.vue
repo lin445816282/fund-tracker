@@ -170,7 +170,7 @@ const modalLoading = ref(false)
 const modalProjects = ref([])
 const expandedIds = ref(new Set())
 function toggleExpand(id) { const s = new Set(expandedIds.value); s.has(id) ? s.delete(id) : s.add(id); expandedIds.value = s }
-function formatDate(d) { const p = d.split("-"); return p[1]+"/"+p[2] }
+function formatDate(d) { const p = d.split("-"); const dt = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2])); const w = ['周日','周一','周二','周三','周四','周五','周六']; return p[1]+"/"+p[2]+" "+w[dt.getDay()] }
 
 const periodNames = {
   today: '今日', yesterday: '昨日',

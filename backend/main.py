@@ -835,6 +835,26 @@ def _calc_project_balance(db, pid: int, before_date: str) -> float:
     ).fetchone()
     return round(row["bal"], 2)
 
+def _fill_week_daily(raw_daily: list, period: str) -> list:
+    """周周期时按日汇总并补全7天，无交易的日子填充0"""
+    if period not in ('week', 'last_week'):
+        return raw_daily
+    # 按日汇总
+    agg = {}
+    for d in raw_daily:
+        agg[d['date']] = agg.get(d['date'], 0) + d['amount']
+    # 计算周一
+    today = date.today()
+    if period == 'week':
+        monday = today - timedelta(days=today.weekday())
+    else:
+        monday = today - timedelta(days=today.weekday() + 7)
+    full = []
+    for i in range(7):
+        d = (monday + timedelta(days=i)).isoformat()
+        full.append({'date': d, 'amount': round(agg.get(d, 0), 2)})
+    return full
+
 def _build_project_tree(db, period: str) -> list:
     """构建项目层级树，含本期统计 + 上期余额"""
     date_filter = _get_date_filter(period)
@@ -864,7 +884,7 @@ def _build_project_tree(db, period: str) -> list:
                     f"SELECT date, amount FROM transactions WHERE project_id=? AND {date_filter} ORDER BY date",
                     (s["id"],)
                 ).fetchall() if date_filter else []
-                daily = [{"date": r["date"], "amount": r["amount"]} for r in daily_rows]
+                daily = _fill_week_daily([{"date": r["date"], "amount": r["amount"]} for r in daily_rows], period)
                 children.append({
                     "id": s["id"], "name": s["name"], "code": s["code"],
                     "net": cs["net"], "income": cs["income"], "expense": cs["expense"],
@@ -878,12 +898,15 @@ def _build_project_tree(db, period: str) -> list:
         agg["net"] += self_stats["net"]
         agg["income"] += self_stats["income"]
         agg["expense"] += self_stats["expense"]
-        # 主项目日明细
-        daily_rows_m = db.execute(
-            f"SELECT date, amount FROM transactions WHERE project_id=? AND {date_filter} ORDER BY date",
-            (m["id"],)
-        ).fetchall() if date_filter else []
-        daily_m = [{"date": r["date"], "amount": r["amount"]} for r in daily_rows_m]
+        # 主项目日明细 = 汇总所有子项目每日数据
+        daily_m = []
+        if children:
+            agg_by_date = {}
+            for c in children:
+                for d in c["daily"]:
+                    agg_by_date[d["date"]] = round(agg_by_date.get(d["date"], 0) + d["amount"], 2)
+            daily_m = sorted([{"date": k, "amount": v} for k, v in agg_by_date.items()], key=lambda x: x["date"])
+            daily_m = _fill_week_daily(daily_m, period)
         # 主项目上期余额（所有子项目余额之和）
         balance_before_main = agg_balance_before
         balance_after_main = round(balance_before_main + agg["net"], 2) if boundary[0] else None
